@@ -53,6 +53,13 @@ Include scansione intelligente, payload personalizzati, interfaccia terminale av
   - tqdm
   - colorama
 
+## ⚙️ Installazione
+-------------
+git clone https://github.com/tuonome/GPTScanner.git
+cd GPTScanner
+pip install -r requirements.txt
+python3 gptscanner.py
+
 Installa tutto con:
 > pip install -r requirements.txt
 
