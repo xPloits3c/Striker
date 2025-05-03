@@ -89,11 +89,13 @@ def menu_interattivo():
     print("\n +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+")
     print("\n |G|P|T|-|S|c|a|n|n|e|r-|x|P|l|o|i|t|s|3|c|")
     print("\n +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+")
+    
+    print("\n +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+")
     print("\n [!] Legal disclaimer: attacking targets without prior mutual consent is illegal.")
     print("\n [!] It is the end user's responsibility to obey all applicable local, state and federal laws.")
     print("\n [!] Developers assume no liability and are not responsible for any misuse or damage caused by this program.")
     print("\n +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+")
-    print("\n +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+")
+    
     print("\n*** Seleziona modalità di scansione ***")
     print("1) Solo scraping dei link con parametri")
     print("2) Scraping + analisi vulnerabilità SQLi")
