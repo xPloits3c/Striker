@@ -36,6 +36,8 @@ Include scansione intelligente, payload personalizzati, interfaccia terminale av
 
 ✔️ Multi-threading per velocità
 
+**💻 Screenshots**
+--------------------------
 ![photo_1_2025-05-03_15-29-31](https://github.com/user-attachments/assets/a8dd9565-c6e9-4420-87c3-fde6af8b4be8)
 ![photo_5_2025-05-03_15-29-31](https://github.com/user-attachments/assets/1b5b5b7e-fe19-4d24-8fd0-d0c914cdb28e)
 ![photo_4_2025-05-03_15-29-31](https://github.com/user-attachments/assets/6d7c394a-50b9-43f6-91cb-20e38411edd5)
