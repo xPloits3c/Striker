@@ -26,9 +26,8 @@ Include scansione intelligente, payload personalizzati, interfaccia terminale av
 ✔️ Testing SQLi con payload personalizzati o di default
 
 ✔️ Evidenziazione in tempo reale:
-
-    ✅ Verde: VULNERABILE
-    ❌ Rosso: NON vulnerabile
+      ✅ Verde: VULNERABILE
+      ❌ Rosso: NON vulnerabile
 
 ✔️ Barra di avanzamento (tqdm)
 
