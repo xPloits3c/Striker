@@ -56,12 +56,12 @@ Include scansione intelligente, payload personalizzati, interfaccia terminale av
 ## ⚙️ Installazione
 git clone https://github.com/tuonome/GPTScanner.git
 
-cd GPTScanner
-pip install -r requirements.txt
-python3 gptscanner.py
+>     cd GPTScanner
+>     pip install -r requirements.txt
+>     python3 gptscanner.py
 
 Installa tutto con:
-> pip install -r requirements.txt
+>     pip install -r requirements.txt
 
 **▶️ Esempio d’uso**
 ----------------
