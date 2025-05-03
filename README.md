@@ -34,7 +34,7 @@ Supporta l'individuazione di vulnerabilità comuni come **SQL Injection**, **XSS
 ## 📸 Screenshot
 
 <p align="center">
-  <img src="![photo_1_2025-05-03_15-29-31](https://github.com/user-attachments/assets/987857f2-ce15-441f-870a-442fd50e2d6d)
+  <img src="https://github.com/user-attachments/assets/987857f2-ce15-441f-870a-442fd50e2d6d
 " width="700" alt="Interfaccia principale">
   <br>
   <em>Interfaccia di scansione con evidenziazione vulnerabilità in tempo reale</em>
