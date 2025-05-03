@@ -1,6 +1,6 @@
 <h1 align="center">🛡️ GPTScanner</h1>
 <p align="center">
-  <strong>Advanced Vulnerability Scanner powered by AI</strong><br>
+  <strong>Advanced Vulnerability Scanner powered by OPEN-AI</strong><br>
   Lightweight | Modular | Updated 2025 | SQLi, XSS, LFI & more
 </p>
 
