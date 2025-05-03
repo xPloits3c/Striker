@@ -14,7 +14,7 @@
 
 ## 🚀 Panoramica
 
-**GPTScanner** è uno strumento avanzato di *web vulnerability scanning* potenziato da logica automatizzata e moduli personalizzabili.  
+**GPTScanner** è uno strumento avanzato di *web vulnerability scanning* creato da xPloits3c e potenziato da logica automatizzata e moduli personalizzabili.  
 Supporta l'individuazione di vulnerabilità comuni come **SQL Injection**, **XSS**, **LFI**, e include un **crawler intelligente**, **dumper database**, supporto per **payload personalizzati**, ed esportazione CSV.
 
 ---
@@ -33,12 +33,25 @@ Supporta l'individuazione di vulnerabilità comuni come **SQL Injection**, **XSS
 
 ## 📸 Screenshot
 
-![photo_1_2025-05-03_15-29-31](https://github.com/user-attachments/assets/2b44dc5b-c7c6-4424-97d4-b9b94ddfe33d)
-
 <p align="center">
-  <em>Interfaccia di scansione con evidenziazione vulnerabilità in tempo reale</em>
+  <em>[+] Interfaccia di scansione con evidenziazione vulnerabilità in tempo reale.</em>
 </p>
-
+![photo_1_2025-05-03_15-29-31](https://github.com/user-attachments/assets/08b11c3d-7ff5-41fb-894f-5038bbe4f94c)
+<p align="center">
+  <em>[+] Il menù principale ti aiuta a scegliere il tipo di attacco che vuoi fare.</em>
+</p>
+![photo_5_2025-05-03_15-29-31](https://github.com/user-attachments/assets/79938a98-32ea-409e-861f-9777ae735de9)
+<p align="center">
+  <em>[+] Trovate vulnerabilità, GPTScanner effetuerà una scansione approfondita.</em>
+</p>
+![photo_4_2025-05-03_15-29-31](https://github.com/user-attachments/assets/ecb4996a-5110-458d-80c0-bde8af471f15)
+<p align="center">
+  <em>[+] Una volta finito, visualizza il file output con i link vulnerabili. EX: cat output.csv</em>
+</p>
+![photo_3_2025-05-03_15-29-31](https://github.com/user-attachments/assets/8169214e-d61a-442b-a308-2cc435f7b4e8)
+<p align="center">
+  <em>[+] IL GIOCO E' FATTO!</em>
+</p>
 ---
 
 ## ⚙️ Installazione
@@ -47,4 +60,4 @@ Supporta l'individuazione di vulnerabilità comuni come **SQL Injection**, **XSS
 git clone https://github.com/tuonome/GPTScanner.git
 cd GPTScanner
 pip install -r requirements.txt
-python gptscanner.py -u https://target.com -o results.csv
+python3 gptscanner.py
