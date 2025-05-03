@@ -50,7 +50,7 @@ Installa tutto con:
 
 ▶️ Esempio d’uso
 ----------------
-> python3 gptscanner.py
+>     python3 gptscanner.py
 
 > Opzioni future: python3 gptscanner.py -u http://vulnerabile.it -p payloads.txt -o risultati.csv
 - `-u` : URL target
