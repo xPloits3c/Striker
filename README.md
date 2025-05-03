@@ -50,9 +50,10 @@ Installa tutto con:
 ▶️ Esempio d’uso
 ----------------
 > python3 gptscanner.py
+
 > python3 gptscanner.py -u http://vulnerabile.it -p payloads.txt -o risultati.csv
 
-Opzioni future:
+> Opzioni future:
 - `-u` : URL target
 - `-p` : (opzionale) File con payload personalizzati
 - `-o` : (opzionale) Esporta risultati in formato CSV
