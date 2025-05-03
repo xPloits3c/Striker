@@ -22,12 +22,17 @@ Include scansione intelligente, payload personalizzati, interfaccia terminale av
 ✨ Funzionalità principali
 --------------------------
 ✔️ Scansione automatica di tutte le pagine e link
+
 ✔️ Testing SQLi con payload personalizzati o di default
+
 ✔️ Evidenziazione in tempo reale:
     ✅ Verde: VULNERABILE
     ❌ Rosso: NON vulnerabile
+
 ✔️ Barra di avanzamento (tqdm)
+
 ✔️ Esportazione risultati in CSV
+
 ✔️ Multi-threading per velocità
 
 ⚙️ Requisiti
