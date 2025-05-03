@@ -19,7 +19,7 @@
 GPTScanner è uno strumento avanzato scritto in Python per identificare vulnerabilità **SQL Injection (SQLi)** nei siti web.
 Include scansione intelligente, payload personalizzati, interfaccia terminale avanzata e esportazione dei risultati.
 
-** ✨ Funzionalità principali
+**✨ Funzionalità principali**
 --------------------------
 ✔️ Scansione automatica di tutte le pagine e link
 
@@ -36,7 +36,7 @@ Include scansione intelligente, payload personalizzati, interfaccia terminale av
 
 ✔️ Multi-threading per velocità
 
-** ⚙️ Requisiti
+**⚙️ Requisiti**
 -------------
 - Python 3.7+
 - Moduli richiesti:
@@ -48,7 +48,7 @@ Include scansione intelligente, payload personalizzati, interfaccia terminale av
 Installa tutto con:
 > pip install -r requirements.txt
 
-** ▶️ Esempio d’uso
+**▶️ Esempio d’uso**
 ----------------
 >     python3 gptscanner.py
 
@@ -57,14 +57,14 @@ Installa tutto con:
 - `-p` : (opzionale) File con payload personalizzati
 - `-o` : (opzionale) Esporta risultati in formato CSV
 
-** 📝 Output CSV
+**📝 Output CSV**
 --------------
 Formato:
 Status, URL
 VULNERABILE, http://...
 OK, http://...
 
-** 🧠 Logica **
+**🧠 Logica**
 ----------
 Il tool confronta la risposta normale con quella modificata. Se:
 - Contiene parole chiave sospette (es. "sql error", "syntax")
@@ -72,13 +72,13 @@ Il tool confronta la risposta normale con quella modificata. Se:
 
 Allora il link è segnalato come **vulnerabile**.
 
-** 🛡️ Prossime funzioni
+**🛡️ Prossime funzioni**
 ---------------------
 - Rilevamento XSS e LFI
 - Report in formato HTML
 - GUI web interattiva
 
-** 👨‍💻 Autore
+**👨‍💻 Autore**
 -----------
 Sviluppato con passione da: **xPloits3c**
 
