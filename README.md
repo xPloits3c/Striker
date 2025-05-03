@@ -12,33 +12,78 @@
 
 ---
 
-## 🚀 Panoramica
 
-**GPTScanner** è uno strumento avanzato di *web vulnerability scanning* creato da xPloits3c e potenziato da logica automatizzata e moduli personalizzabili.  
-Supporta l'individuazione di vulnerabilità comuni come **SQL Injection**, **XSS**, **LFI**, e include un **crawler intelligente**, **dumper database**, supporto per **payload personalizzati**, ed esportazione CSV.
+ ██████╗ ██████╗ ████████╗███████╗ ██████╗ █████╗ ███╗   ██╗███╗   ██╗███████╗██████╗ 
+██╔════╝ ██╔══██╗╚══██╔══╝██╔════╝██╔════╝██╔══██╗████╗  ██║████╗  ██║██╔════╝██╔══██╗
+██║  ███╗██████╔╝   ██║   ███████╗██║     ███████║██╔██╗ ██║██╔██╗ ██║█████╗  ██████╔╝
+██║   ██║██╔═══╝    ██║   ╚════██║██║     ██╔══██║██║╚██╗██║██║╚██╗██║██╔══╝  ██╔══██╗
+╚██████╔╝██║        ██║   ███████║╚██████╗██║  ██║██║ ╚████║██║ ╚████║███████╗██║  ██║
+ ╚═════╝ ╚═╝        ╚═╝   ╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝     
 
----
+🔍 GPTScanner — Advanced SQLi Vulnerability Scanner
+===================================================
 
-## 🧰 Caratteristiche
+GPTScanner è uno strumento avanzato scritto in Python per identificare vulnerabilità **SQL Injection (SQLi)** nei siti web.
+Include scansione intelligente, payload personalizzati, interfaccia terminale avanzata e esportazione dei risultati.
 
-- [x] Crawler intelligente e profondo (fino a 5 livelli)
-- [x] Rilevamento SQLi, XSS, LFI aggiornato al 2025
-- [x] Dump automatico database (opzionale)
-- [x] Interfaccia web con evidenziazione vulnerabilità
-- [x] Supporto per payload personalizzati
-- [x] Esportazione risultati in CSV
-- [x] Modalità headless + opzione `-h` per help avanzato
+✨ Funzionalità principali
+--------------------------
+✔️ Scansione automatica di tutte le pagine e link
+✔️ Testing SQLi con payload personalizzati o di default
+✔️ Evidenziazione in tempo reale:
+    ✅ Verde: VULNERABILE
+    ❌ Rosso: NON vulnerabile
+✔️ Barra di avanzamento (tqdm)
+✔️ Esportazione risultati in CSV
+✔️ Multi-threading per velocità
 
----
+⚙️ Requisiti
+-------------
+- Python 3.7+
+- Moduli richiesti:
+  - requests
+  - beautifulsoup4
+  - tqdm
+  - colorama
 
-## 📸 Screenshot
+Installa tutto con:
+> pip install -r requirements.txt
 
-<p align="center">
-  <em>[+] Interfaccia di scansione con evidenziazione vulnerabilità in tempo reale.</em>
-</p>
-![photo_1_2025-05-03_15-29-31](https://github.com/user-attachments/assets/b0a623c2-f41a-4d79-93dc-239fd0f3eaa3)
+▶️ Esempio d’uso
+----------------
+> python GPTScanner_final.py -u http://vulnerabile.it -p payloads.txt -o risultati.csv
 
----
+Opzioni:
+- `-u` : URL target
+- `-p` : (opzionale) File con payload personalizzati
+- `-o` : (opzionale) Esporta risultati in formato CSV
+
+📝 Output CSV
+--------------
+Formato:
+Status, URL
+VULNERABILE, http://...
+OK, http://...
+
+🧠 Logica
+----------
+Il tool confronta la risposta normale con quella modificata. Se:
+- Contiene parole chiave sospette (es. "sql error", "syntax")
+- O è significativamente diversa in contenuto
+
+Allora il link è segnalato come **vulnerabile**.
+
+🛡️ Prossime funzioni
+---------------------
+- Rilevamento XSS e LFI
+- Report in formato HTML
+- GUI web interattiva
+
+👨‍💻 Autore
+-----------
+Sviluppato con passione da: **xPloits3c**
+
+Licenza: MIT
 
 ## ⚙️ Installazione
 
