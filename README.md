@@ -52,6 +52,7 @@ Supporta l'individuazione di vulnerabilità comuni come **SQL Injection**, **XSS
 <p align="center">
   <em>[+] IL GIOCO E' FATTO!</em>
 </p>
+
 ---
 
 ## ⚙️ Installazione
