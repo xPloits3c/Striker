@@ -65,7 +65,22 @@ Installa tutto con:
 
 **▶️ Esempio d’uso**
 ----------------
->     python3 gptscanner.py
+>     1) python3 gptscanner.py
+>     2) Scraping + analisi vulnerabilità SQLi
+>     3) File payloads (opzionale, invio per default): sqli.payloads.txt
+>     4) Numero di thread (default 5): 5
+
+**Ex:**
+----------------
+1) Solo scraping dei link con parametri
+2) Scraping + analisi vulnerabilità SQLi
+3) Scraping + analisi vulnerabilità XSS
+4) Scraping + analisi vulnerabilità LFI
+5) Scraping + rilevamento WAF e IP
+Scelta (1-5): 2
+File payloads (opzionale, invio per default):
+Nome file CSV output [default: risultati.csv]: prova.csv
+Numero di thread (default 5): 5
 
 > Opzioni future: python3 gptscanner.py -u http://vulnerabile.it -p payloads.txt -o risultati.csv
 - `-u` : URL target
