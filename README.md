@@ -6,8 +6,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-active-success?style=flat-square" />
-  <img src="https://img.shields.io/github/license/tuonome/GPTScanner?style=flat-square" />
-  <img src="https://img.shields.io/github/stars/tuonome/GPTScanner?style=social" />
+  <img src="https://img.shields.io/github/license/xPloits3c/GPTScanner?style=flat-square" />
+  <img src="https://img.shields.io/github/stars/xPoits3c/GPTScanner?style=social" />
 </p>
 
 ---
