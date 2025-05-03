@@ -106,7 +106,7 @@ def menu_interattivo():
     return int(scelta)
 
 def main():
-    parser = argparse.ArgumentParser(description='GPTScanner - Scansione automatica con output CSV')
+    parser = argparse.ArgumentParser(description='GPTScanner - Scansione automatica SQLi.')
     parser.add_argument('-o', '--output', help='Salva i risultati in un file CSV', default='risultati.csv')
     args = parser.parse_args()
     output_file = args.output
