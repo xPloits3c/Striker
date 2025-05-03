@@ -7,7 +7,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/status-active-success?style=flat-square" />
   <img src="https://img.shields.io/github/license/xPloits3c/GPTScanner?style=flat-square" />
-  <img src="https://img.shields.io/github/stars/xPoits3c/GPTScanner?style=social" />
+  <img src="https://img.shields.io/github/stars/xPloits3c/GPTScanner?style=social" />
 </p>
 
 ---
@@ -34,7 +34,8 @@ Supporta l'individuazione di vulnerabilità comuni come **SQL Injection**, **XSS
 ## 📸 Screenshot
 
 <p align="center">
-  <img src="images/interface.png" width="700" alt="Interfaccia principale">
+  <img src="![photo_1_2025-05-03_15-29-31](https://github.com/user-attachments/assets/987857f2-ce15-441f-870a-442fd50e2d6d)
+" width="700" alt="Interfaccia principale">
   <br>
   <em>Interfaccia di scansione con evidenziazione vulnerabilità in tempo reale</em>
 </p>
