@@ -54,8 +54,8 @@ Include scansione intelligente, payload personalizzati, interfaccia terminale av
   - colorama
 
 ## ⚙️ Installazione
--------------
 git clone https://github.com/tuonome/GPTScanner.git
+
 cd GPTScanner
 pip install -r requirements.txt
 python3 gptscanner.py
