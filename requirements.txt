@@ -1,4 +1,9 @@
 requests
+argparse
+csv
+os
+time
+isocket
 beautifulsoup4
 colorama
 tqdm
