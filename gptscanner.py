@@ -177,7 +177,7 @@ def main_menu():
             elif scelta == "3":
                 payloads = load_payloads("lfi_payloads.txt")
             else:
-                path = input("Inserisci il percorso del file con payload personalizzati: ").strip()
+                path = input("Inserisci il percorso del file con payload personalizzati: (es. /home/GPTScanner/payloads.txt ").strip()
                 payloads = load_payloads(path)
             f, writer = prepare_csv("scan_results.csv")
             for link in links:
