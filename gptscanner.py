@@ -154,12 +154,12 @@ def main_menu():
 {Fore.CYAN}[!] Developers assume no liability and are not responsible for any misuse or damage caused by this program.{Style.RESET_ALL}
 {Fore.CYAN}+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+{Style.RESET_ALL}
 {Fore.CYAN}===== MENU GPTScanner DEBUG ====={Style.RESET_ALL}
-1) Scansione SQL Injection
-2) Scansione XSS
-3) Scansione LFI
+1) Test SQLi Vulnerability
+2) Test XSS Vulnerability
+3) Test LFI Vulnerability
 4) Scansione Personalizzata
 5) Rilevamento WAF e Reverse IP
-6) Crawler Avanzato (profondità 5)
+6) DEEP Crawler (.CSV output)
 0) Esci
 """)
         scelta = input("Seleziona un'opzione: ")
