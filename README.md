@@ -13,7 +13,7 @@
 ---
  
 
-🔍 GPTScanner — Advanced SQLi Vulnerability Scanner
+🔍 GPTScanner — Advanced Vulnerability Scanner
 ===================================================
 
 |G|P|T|-|S|c|a|n|n|e|r|
