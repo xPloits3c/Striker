@@ -20,11 +20,11 @@
 
 **DISCLAIMER LEGALE:**
 
--- [!] Attaccare obiettivi senza previo consenso reciproco è illegale.
+[!] Attaccare obiettivi senza previo consenso reciproco è illegale.
 
--- [!] È responsabilità dell'utente finale rispettare tutte le leggi locali, statali e federali applicabili.
+[!] È responsabilità dell'utente finale rispettare tutte le leggi locali, statali e federali applicabili.
 
--- [!] Gli sviluppatori non si assumono alcuna responsabilità e non sono responsabili per eventuali usi impropri o danni causati da questo programma.
+[!] Gli sviluppatori non si assumono alcuna responsabilità e non sono responsabili per eventuali usi impropri o danni causati da questo programma.
 
 GPTScanner è uno strumento avanzato scritto in Python per identificare vulnerabilità **SQL Injection (SQLi)** nei siti web.
 
