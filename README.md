@@ -16,19 +16,33 @@
 🔍 GPTScanner — Advanced SQLi Vulnerability Scanner
 ===================================================
 
+|G|P|T|-|S|c|a|n|n|e|r|
+DISCLAIMER LEGALE:
+[!] Attaccare obiettivi senza previo consenso reciproco è illegale.
+[!] È responsabilità dell'utente finale rispettare tutte le leggi locali, statali e federali applicabili.
+[!] Gli sviluppatori non si assumono alcuna responsabilità e non sono responsabili per eventuali usi impropri o danni causati da questo programma.
+
 GPTScanner è uno strumento avanzato scritto in Python per identificare vulnerabilità **SQL Injection (SQLi)** nei siti web.
 Include scansione intelligente, payload personalizzati, interfaccia terminale avanzata e esportazione dei risultati.
 
 **✨ Funzionalità principali**
 --------------------------
-✔️ Scansione automatica di tutte le pagine e link
+✔️ Crawler Test vuln.
 
-✔️ Testing SQLi con payload personalizzati o di default
+✔️ Testing SQLi-XSS-LFI con payload personalizzati o di default.
 
 ✔️ Evidenziazione in tempo reale:
 
     ✅ Verde: VULNERABILE
     ❌ Rosso: NON vulnerabile
+
+✔️ WAF and REVERSE IP
+-----------
+Es:
+[+] IP del dominio example.com: 0.0.0.0
+[+] Domini trovati sull'IP 0.0.0.0:
+...
+...
 
 ✔️ Barra di avanzamento (tqdm)
 
@@ -83,41 +97,36 @@ Nome file CSV output [default: risultati.csv]: prova.csv
 Numero di thread (default 5): 5
 
 > Opzioni future: python3 gptscanner.py -u http://vulnerabile.it -p payloads.txt -o risultati.csv
-- `-u` : URL target
-- `-p` : (opzionale) File con payload personalizzati
-- `-o` : (opzionale) Esporta risultati in formato CSV
+- `-u` : URL target.
+- `--dump` : Dump Database.
+- `--wp` : WordPress Scanner.
+- - `-m` : Target list.
 
 **📝 Output CSV**
 --------------
-Formato:
-Status, URL
+Formato: .csv
+Status, URL ,REVERSE IP AND WAF
 VULNERABILE, http://...
 OK, http://...
 
 **🧠 Logica**
 ----------
 Il tool confronta la risposta normale con quella modificata. Se:
-- Contiene parole chiave sospette (es. "sql error", "syntax")
-- O è significativamente diversa in contenuto
+- Contiene parole chiave sospette (es. "sql error", "syntax").
+- O è significativamente diversa in contenuto.
+- Scansionare il sito web e ottenereun reverse Ip.
 
 Allora il link è segnalato come **vulnerabile**.
 
 **🛡️ Prossime funzioni**
 ---------------------
-- Rilevamento XSS e LFI
-- Report in formato HTML
-- GUI web interattiva
+- Word Press Scanner Vulnerability.
+- Dump database se: Vulnerabile.
+- Stringhe di comando direttamente dal terminale.
 
 **👨‍💻 Autore**
 -----------
-Sviluppato con passione da: **xPloits3c**
+Sviluppato con passione da: **xPloits3c** con: **Open-Ai**
 
 Licenza: MIT
 
-## ⚙️ Installazione
-
-```bash
-git clone https://github.com/tuonome/GPTScanner.git
-cd GPTScanner
-pip install -r requirements.txt
-python3 gptscanner.py
