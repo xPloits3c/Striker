@@ -14,6 +14,7 @@
 
 ---
  
+![GPTScanner_logo_v1 0](https://github.com/user-attachments/assets/15743220-4e60-48fc-a7e8-b26755f8d7d7)
 
 🔍 |G|P|T|-|S|c|a|n|n|e|r| — Advanced Vulnerability Scanner
 ===================================================
