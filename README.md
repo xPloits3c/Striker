@@ -80,6 +80,7 @@ Installa Requisiti con:
   - Dump database se: Vulnerabile.
   - Stringhe di comando direttamente dal terminale.
   - Vedi GPTScanner_v2.0 https://github.com/xPloits3c/GPTScanner/releases/tag/GPTScanner_v2.0
+    
 **Opzioni future: GPTScanner**
 ----------------
   - `-u` : URL target.
