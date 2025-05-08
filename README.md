@@ -8,6 +8,8 @@
   <img src="https://img.shields.io/badge/status-active-success?style=flat-square" />
   <img src="https://img.shields.io/github/license/xPloits3c/GPTScanner?style=flat-square" />
   <img src="https://img.shields.io/github/stars/xPloits3c/GPTScanner?style=social" />
+  <img src="https://img.shields.io/github/v/release/xPloits3c/GPTScanner" />
+
 </p>
 
 ---
@@ -16,74 +18,71 @@
 🔍 |G|P|T|-|S|c|a|n|n|e|r| — Advanced Vulnerability Scanner
 ===================================================
 **GPTScanner è uno strumento avanzato scritto in Python per identificare vulnerabilità:**
-+     SQL Injection (SQLi)
-+     Cross Site Scripting (XSS)
-+     Local File Inclusion (LFI)
-+     Web Application Firewall (WAF)
-+     Reverse IP 
+  +     SQL Injection (SQLi)
+  +     Cross Site Scripting (XSS)
+  +     Local File Inclusion (LFI)
 Include scansione intelligente, payload personalizzati, interfaccia terminale avanzata e esportazione dei risultati.
 
 **✨ Funzionalità principali**
 --------------------------
-✔️ Crawler Test vuln.
+  ✔️ Crawler Test vuln.
 
-✔️ Testing SQLi-XSS-LFI con payload personalizzati o di default.
+  ✔️ Testing SQLi-XSS-LFI con payload personalizzati o di default.
 
-✔️ Evidenziazione in tempo reale:
+  ✔️ Web Application Firewall (WAF)
+
+  ✔️ Reverse IP 
+
+  ✔️ Evidenziazione in tempo reale:
 
     ✅ Verde: VULNERABILE
     ❌ Rosso: NON vulnerabile
 
-✔️ WAF and REVERSE IP
+  ✔️ WAF and REVERSE IP
 
-✔️ Barra di avanzamento (tqdm)
+  ✔️ Barra di avanzamento (tqdm)
 
-✔️ Esportazione risultati in CSV
+  ✔️ Esportazione risultati in CSV
 
-✔️ Multi-threading per velocità
+  ✔️ Multi-threading per velocità
 
 **⚙️ Requisiti**
 -------------
-- Python 3.7+
-- Moduli richiesti:
-  - requests
-  - beautifulsoup4
-  - tqdm
-  - colorama
+  - Python 3.7+
+  - Moduli richiesti:
+    - requests
+    - beautifulsoup4
+    - tqdm
+    - colorama
 
 ## ⚙️ Installazione
-+     git clone (https://github.com/xPloits3c/GPTScanner.git)
-+     cd GPTScanner
-+     pip install -r requirements.txt
-+     python3 gptscanner.py
+  +     git clone https://github.com/xPloits3c/GPTScanner.git
+  +     cd GPTScanner
+  +     pip install -r requirements.txt
+  +     python3 gptscanner.py
 
 Installa Requisiti con:
-+     pip install -r requirements.txt
+  +     pip install -r requirements.txt
 
 **▶️ Esempio d’uso**
 ----------------
->     1) python3 gptscanner.py
->     2) Scraping + analisi vulnerabilità SQLi
->     3) File payloads (opzionale, invio per default): sqli.payloads.txt
->     4) Numero di thread (default 5): 5
+  +     1) python3 gptscanner.py
+  +     2) Scraping + analisi vulnerabilità SQLi
+  +     3) File payloads (opzionale, invio per default): sqli.payloads.txt
+  +     4) Numero di thread (default 5): 5
 
-**Ex:**
+**🛡️ Prossime funzioni**
+---------------------
+  - Word Press Scanner Vulnerability.
+  - Dump database se: Vulnerabile.
+  - Stringhe di comando direttamente dal terminale.
+
+**Opzioni future: GPTScanner**
 ----------------
-1) Solo scraping dei link con parametri
-2) Scraping + analisi vulnerabilità SQLi
-3) Scraping + analisi vulnerabilità XSS
-4) Scraping + analisi vulnerabilità LFI
-5) Scraping + rilevamento WAF e IP
-Scelta (1-5): 2
-File payloads (opzionale, invio per default):
-Nome file CSV output [default: risultati.csv]: prova.csv
-Numero di thread (default 5): 5
-
-> Opzioni future: python3 gptscanner.py -u http://vulnerabile.it -p payloads.txt -o risultati.csv
-- `-u` : URL target.
-- `--dump` : Dump Database.
-- `--wp` : WordPress Scanner.
-- - `-m` : Load Target List.
+  - `-u` : URL target.
+  - `--dump` : Dump Database.
+  - `--wp` : WordPress Scanner.
+  - - `-m` : Load Target List.
 
 **💻 Screenshots**
 --------------------------
@@ -103,15 +102,9 @@ OK, http://...
 **🧠 Logica**
 ----------
 Il tool confronta la risposta normale con quella modificata. Se:
-- Contiene parole chiave sospette (es. "sql error", "syntax").
-- O è significativamente diversa in contenuto.
-- Allora il link è segnalato come **vulnerabile**.
-
-**🛡️ Prossime funzioni**
----------------------
-- Word Press Scanner Vulnerability.
-- Dump database se: Vulnerabile.
-- Stringhe di comando direttamente dal terminale.
+  - Contiene parole chiave sospette (es. "sql error", "syntax").
+  - O è significativamente diversa in contenuto.
+  - Allora il link è segnalato come **vulnerabile**.
 
 **👨‍💻 Autore**
 -----------
