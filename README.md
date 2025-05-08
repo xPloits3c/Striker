@@ -41,12 +41,14 @@ Include scansione intelligente, payload personalizzati, interfaccia terminale av
     ✅ Verde: VULNERABILE
     ❌ Rosso: NON vulnerabile
 
-✔️ WAF and REVERSE IP
+✔ WAF and REVERSE IP
 -----------
 Es:
 [+] IP del dominio example.com: 0.0.0.0
+
 [+] Domini trovati sull'IP 0.0.0.0:
-...
+.com
+.eu
 ...
 
 ✔️ Barra di avanzamento (tqdm)
