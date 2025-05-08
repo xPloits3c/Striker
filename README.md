@@ -42,11 +42,9 @@
     ✅ Verde: VULNERABILE
     ❌ Rosso: NON vulnerabile
 
-  ✔️ WAF and REVERSE IP
-
   ✔️ Barra di avanzamento (tqdm)
 
-  ✔️ Esportazione risultati in CSV
+  ✔️ Esportazione risultati automatica in .CSV
 
   ✔️ Multi-threading per velocità
 
