@@ -22,6 +22,7 @@
   +     Cross Site Scripting (XSS)
   +     Local File Inclusion (LFI)
 Include scansione intelligente, payload personalizzati, interfaccia terminale avanzata e esportazione dei risultati.
+![icon_SQL](https://github.com/user-attachments/assets/922b63de-9adf-44cd-9027-fd1aee6b22a2)
 
 **✨ Funzionalità principali**
 --------------------------
