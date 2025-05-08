@@ -52,14 +52,13 @@ Include scansione intelligente, payload personalizzati, interfaccia terminale av
   - colorama
 
 ## ⚙️ Installazione
-git clone https://github.com/tuonome/GPTScanner.git
++     git clone (https://github.com/xPloits3c/GPTScanner.git)
++     cd GPTScanner
++     pip install -r requirements.txt
++     python3 gptscanner.py
 
->     cd GPTScanner
->     pip install -r requirements.txt
->     python3 gptscanner.py
-
-Installa tutto con:
->     pip install -r requirements.txt
+Installa Requisiti con:
++     pip install -r requirements.txt
 
 **▶️ Esempio d’uso**
 ----------------
@@ -84,7 +83,7 @@ Numero di thread (default 5): 5
 - `-u` : URL target.
 - `--dump` : Dump Database.
 - `--wp` : WordPress Scanner.
-- - `-m` : Target list.
+- - `-m` : Load Target List.
 
 **💻 Screenshots**
 --------------------------
@@ -97,7 +96,7 @@ Numero di thread (default 5): 5
 **📝 Output CSV**
 --------------
 Formato: .csv
-Status, URL ,REVERSE IP AND WAF
+Status, URL ,REVERSE IP & WAF
 VULNERABILE, http://...
 OK, http://...
 
@@ -106,9 +105,7 @@ OK, http://...
 Il tool confronta la risposta normale con quella modificata. Se:
 - Contiene parole chiave sospette (es. "sql error", "syntax").
 - O è significativamente diversa in contenuto.
-- Scansionare il sito web e ottenereun reverse Ip.
-
-Allora il link è segnalato come **vulnerabile**.
+- Allora il link è segnalato come **vulnerabile**.
 
 **🛡️ Prossime funzioni**
 ---------------------
