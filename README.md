@@ -13,11 +13,8 @@
 ---
  
 
-🔍 GPTScanner — Advanced Vulnerability Scanner
+🔍 |G|P|T|-|S|c|a|n|n|e|r| — Advanced Vulnerability Scanner
 ===================================================
-
-**|G|P|T|-|S|c|a|n|n|e|r|**
---------------------------
 GPTScanner è uno strumento avanzato scritto in Python per identificare vulnerabilità **SQL Injection (SQLi)** nei siti web.
 
 Include scansione intelligente, payload personalizzati, interfaccia terminale avanzata e esportazione dei risultati.
