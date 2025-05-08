@@ -19,6 +19,8 @@
 +     SQL Injection (SQLi)
 +     Cross Site Scripting (XSS)
 +     Local File Inclusion (LFI)
++     Web Application Firewall (WAF)
++     Reverse IP 
 Include scansione intelligente, payload personalizzati, interfaccia terminale avanzata e esportazione dei risultati.
 
 **✨ Funzionalità principali**
@@ -32,15 +34,7 @@ Include scansione intelligente, payload personalizzati, interfaccia terminale av
     ✅ Verde: VULNERABILE
     ❌ Rosso: NON vulnerabile
 
-✔ WAF and REVERSE IP
------------
-Es:
-[+] IP del dominio example.com: 0.0.0.0
-
-[+] Domini trovati sull'IP 0.0.0.0:
-.com
-.eu
-...
+✔️ WAF and REVERSE IP
 
 ✔️ Barra di avanzamento (tqdm)
 
