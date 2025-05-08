@@ -1,10 +1,10 @@
 ![GPTScanner_logo_v1 0](https://github.com/user-attachments/assets/15743220-4e60-48fc-a7e8-b26755f8d7d7)
 
 
-<h1 align="center">🛡️ GPTScanner</h1>
+<h1 align="center">🛡️ |G|P|T|-|S|c|a|n|n|e|r|</h1>
 <p align="center">
   <strong>Advanced Vulnerability Scanner powered by OPEN-AI</strong><br>
-  Lightweight | Modular | Updated 2025 | SQLi, XSS, LFI & more
+  Lightweight | Modular | Reverse Ip | SQLi, XSS, LFI & more
 </p>
 
 <p align="center">
@@ -18,8 +18,6 @@
 ---
  
 
-🔍 |G|P|T|-|S|c|a|n|n|e|r| — Advanced Vulnerability Scanner
-===================================================
 **GPTScanner è uno strumento avanzato scritto in Python per identificare vulnerabilità.**
 
 **Include scansione intelligente, payload personalizzati, interfaccia terminale avanzata e esportazione dei risultati.**
