@@ -20,7 +20,7 @@
 
 **GPTScanner è uno strumento avanzato scritto in Python per identificare vulnerabilità.**
 
-**Include scansione intelligente, payload personalizzati, interfaccia terminale avanzata e esportazione dei risultati.**
+**Include scansione intelligente, payload personalizzati, interfaccia terminale avanzata ed esportazione dei risultati.**
   + SQL Injection (SQLi)
   + Cross Site Scripting (XSS)
   + Local File Inclusion (LFI)
