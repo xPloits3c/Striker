@@ -63,13 +63,10 @@
   +     pip install -r requirements.txt
   +     python3 gptscanner.py
 
-Installa Requisiti con:
-  +     pip install -r requirements.txt
-
 **▶️ Esempio d’uso**
 ----------------
   +     1) python3 gptscanner.py
-  +     2) Scraping + analisi vulnerabilità SQLi
+  +     2) Scansione personalizzata.
   +     3) File payloads (opzionale, invio per default): sqli.payloads.txt
   +     4) Numero di thread (default 5): 5
 
