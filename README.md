@@ -52,10 +52,10 @@
 -------------
   - Python 3.7+
   - Moduli richiesti:
-    - requests
-    - beautifulsoup4
-    - tqdm
-    - colorama
+    - `requests`
+    - `beautifulsoup4`
+    - `tqdm`
+    - `colorama`
 
 ## ⚙️ Installazione
   +     git clone https://github.com/xPloits3c/GPTScanner.git
@@ -83,7 +83,7 @@ Installa Requisiti con:
   - `-u` : URL target.
   - `--dump` : Dump Database.
   - `--wp` : WordPress Scanner.
-  - - `-m` : Load Target List.
+  - `-m` : Load Target List.
 
 **💻 Screenshots**
 --------------------------
@@ -95,10 +95,7 @@ Installa Requisiti con:
 
 **📝 Output CSV**
 --------------
-Ogni ricerca viene salvata automaticamente in Formato: .csv
-Status, URL ,REVERSE IP & WAF
-VULNERABILE, http://...
-OK, http://...
+Ogni ricerca viene salvata automaticamente in Formato:`.csv`
 
 **🧠 Logica**
 ----------
@@ -109,7 +106,7 @@ Il tool confronta la risposta normale con quella modificata. Se:
 
 **👨‍💻 Autore**
 -----------
-Sviluppato con passione da: **xPloits3c** con: **Open-Ai**
+Sviluppato con passione da: `**xPloits3c**` con: `**Open-Ai**`
 
 Licenza: MIT
 
