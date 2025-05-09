@@ -146,19 +146,19 @@ def crawl_recursive(url, depth=5, visited=None):
 def main_menu():
     while True:
         print(f"""
-{Fore.CYAN}+-+-+-+-+-+-+-+-+-+-+-+-{Style.RESET_ALL}
-{Fore.CYAN}|G|P|T|-|S|c|a|n|n|e|r-|{Style.RESET_ALL}
-{Fore.CYAN}+-+-+-+-+-+-+-+-+-+-+-+-{Style.RESET_ALL}
-{Fore.CYAN}[!] Legal disclaimer: attacking targets without prior mutual consent is illegal.{Style.RESET_ALL}
-{Fore.CYAN}[!] It is the end user's responsibility to obey all applicable local, state and federal laws.{Style.RESET_ALL}
-{Fore.CYAN}[!] Developers assume no liability and are not responsible for any misuse or damage caused by this program.{Style.RESET_ALL}
-{Fore.CYAN}+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+{Style.RESET_ALL}
-{Fore.CYAN}===== MENU GPTScanner DEBUG ====={Style.RESET_ALL}
-1) Test SQLi Vulnerability
-2) Test XSS Vulnerability
-3) Test LFI Vulnerability
+{Fore.CYAN}+-+-+-+-+-+-+-+-+-+-+-+{Style.RESET_ALL}
+{Fore.CYAN}|G|P|T|-|S|c|a|n|n|e|r|{Style.RESET_ALL}
+{Fore.CYAN}+-+-+-+-+-+-+-+-+-+-+-+{Style.RESET_ALL}
+{Fore.CYAN}[!] Disclaimer legale: Attaccare obiettivi senza previo consenso reciproco è illegale.{Style.RESET_ALL}
+{Fore.CYAN}[!] È responsabilità dell'utente finale rispettare tutte le leggi locali, statali e federali applicabili.{Style.RESET_ALL}
+{Fore.CYAN}[!] Gli sviluppatori non si assumono alcuna responsabilità e non sono responsabili per eventuali usi impropri o danni causati da questo programma.{Style.RESET_ALL}
+{Fore.CYAN}+-+-+-+-+-+-+-+-+-+-+-+{Style.RESET_ALL}
+{Fore.CYAN}===== MENU GPTScanner ====={Style.RESET_ALL}
+1) SQL Injection
+2) XSS Injection
+3) LFI Injection
 4) Scansione Personalizzata
-5) Rilevamento WAF e Reverse IP
+5) Rilevamento WAF & Reverse IP
 6) DEEP Crawler (.CSV output)
 0) Esci
 """)
