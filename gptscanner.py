@@ -146,9 +146,9 @@ def crawl_recursive(url, depth=5, visited=None):
 def main_menu():
     while True:
         print(f"""
-{Fore.CYAN}+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+{Style.RESET_ALL}
-{Fore.CYAN}|G|P|T|-|S|c|a|n|n|e|r-|x|P|l|o|i|t|s|3|c|{Style.RESET_ALL}
-{Fore.CYAN}+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+{Style.RESET_ALL}
+{Fore.CYAN}+-+-+-+-+-+-+-+-+-+-+-+-{Style.RESET_ALL}
+{Fore.CYAN}|G|P|T|-|S|c|a|n|n|e|r-|{Style.RESET_ALL}
+{Fore.CYAN}+-+-+-+-+-+-+-+-+-+-+-+-{Style.RESET_ALL}
 {Fore.CYAN}[!] Legal disclaimer: attacking targets without prior mutual consent is illegal.{Style.RESET_ALL}
 {Fore.CYAN}[!] It is the end user's responsibility to obey all applicable local, state and federal laws.{Style.RESET_ALL}
 {Fore.CYAN}[!] Developers assume no liability and are not responsible for any misuse or damage caused by this program.{Style.RESET_ALL}
