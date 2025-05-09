@@ -79,9 +79,7 @@ Installa Requisiti con:
   - Dump database se: Vulnerabile.
   - Stringhe di comando direttamente dal terminale.
   - Vedi GPTScanner_v2.0 https://github.com/xPloits3c/GPTScanner/releases/tag/GPTScanner_v2.0
-    
-**Opzioni future: GPTScanner**
-----------------
+  - Esecuzione diretta:
   - `-u` : URL target.
   - `--dump` : Dump Database.
   - `--wp` : WordPress Scanner.
@@ -97,7 +95,7 @@ Installa Requisiti con:
 
 **📝 Output CSV**
 --------------
-Formato: .csv
+Ogni ricerca viene salvata automaticamente in Formato: .csv
 Status, URL ,REVERSE IP & WAF
 VULNERABILE, http://...
 OK, http://...
