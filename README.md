@@ -103,7 +103,7 @@ Il tool confronta la risposta normale con quella modificata. Se:
 
 **👨‍💻 Autore**
 -----------
-Sviluppato con passione da: `**xPloits3c**` con: `**Open-Ai**`
+Sviluppato con passione da: **`xPloits3c`** con: **`Open-Ai`**
 
 Licenza: MIT
 
