@@ -16,7 +16,7 @@
 </p>
 
 ---
- ![Repo View Counter](https://profile-counter.glitch.me/xPloits3c/count.svg)
+ ![Repo View Counter](https://profile-counter.glitch.me/GPTScanner/count.svg)
 
 **GPTScanner è uno strumento avanzato scritto in Python per identificare eventuali vulnerabilità.**
 
