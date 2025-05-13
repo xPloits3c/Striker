@@ -13,8 +13,6 @@
   <img src="https://img.shields.io/github/stars/xPloits3c/GPTScanner?style=social" />
   <img src="https://img.shields.io/github/release/xPloits3c/GPTScanner" />
   
-  ![Repo View Counter](https://profile-counter.glitch.me/xPloits3c/count.svg)
-
 </p>
 
 ---
