@@ -202,7 +202,7 @@ def main_menu():
 {Fore.YELLOW} |_|    t.me/Striker{Style.RESET_ALL}
 {Fore.YELLOW}  V{Style.RESET_ALL}
 {Fore.RED}[!] Disclaimer: {Fore.YELLOW}Use the tool only on sites you own or with explicit authorization.{Style.RESET_ALL}
-{Fore.BLUE}===== GPTScanner ====={Style.RESET_ALL}
+{Fore.BLUE}===== Striker ====={Style.RESET_ALL}
 1) SQL Injection
 2) XSS Injection
 3) LFI Injection
