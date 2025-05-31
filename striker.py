@@ -1,0 +1,260 @@
+# gptscanner_v2_by_xPloits3c
+
+import requests
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin, urlparse, parse_qs
+import argparse
+import csv
+import os
+import time
+import socket
+import random
+import re
+from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from colorama import Fore, Style, init
+
+init(autoreset=True)
+
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_7_4)"
+    "Mozilla/5.0 (X11; Linux x86_64)",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_3_2 like Mac OS X)"
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 16_7_10 like Mac OS X)"
+    "Mozilla/5.0 (X11; Linux x86_64)"
+
+]
+
+def get_headers():
+    return {
+        "User-Agent": random.choice(USER_AGENTS)
+    }
+
+def delay():
+    time.sleep(random.uniform(0.5, 2.0))
+
+def load_payloads(path=None):
+    if path and os.path.exists(path):
+        with open(path, 'r', encoding='utf-8') as f:
+            payloads = [line.strip() for line in f if line.strip()]
+            print(f"{Fore.YELLOW}[*] Loaded {len(payloads)} payloads from {path}{Style.RESET_ALL}")
+            return payloads
+    default_payloads = ["'", "' OR '1'='1", "'; DROP TABLE users; --"]
+    print(f"{Fore.YELLOW}[!] Payload file not found, uploading default payloads... ({len(default_payloads)}).{Style.RESET_ALL}")
+    return default_payloads
+
+def get_all_links(base_url):
+    try:
+        response = requests.get(base_url, headers=get_headers(), timeout=10)
+    except Exception as e:
+        print(f"[!] Error while downloading: {e}")
+        return []
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+    links = set()
+    for tag in soup.find_all('a', href=True):
+        full_url = urljoin(base_url, tag['href'])
+        links.add(full_url)
+
+    return list(links)
+
+def filter_links_with_params(links):
+    filtered = [link for link in links if '?' in link]
+    print(f"{Fore.CYAN}[*] Link with parameters, found: {len(filtered)}{Style.RESET_ALL}")
+    return filtered
+
+def is_significantly_different(resp1, resp2):
+    if not resp1 or not resp2:
+        return False
+    len1, len2 = len(resp1), len(resp2)
+    if len1 == 0 or len2 == 0:
+        return False
+    diff_ratio = abs(len1 - len2) / max(len1, len2)
+    return diff_ratio > 0.2
+
+def is_vulnerable(injected_text, normal_text):
+    common_errors = ["sql", "syntax", "mysql", "you have an error", "warning", "xss", "<script", "etc/passwd"]
+    injected_text = injected_text.lower()
+    if any(error in injected_text for error in common_errors):
+        return True
+    return is_significantly_different(injected_text, normal_text)
+
+def test_single_url(link, payloads, writer=None):
+    parsed = urlparse(link)
+    base = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+    params = parse_qs(parsed.query)
+    normal_response = None
+    vulnerable_links = []
+
+    for key in params:
+        for payload in payloads:
+            new_params = params.copy()
+            new_params[key] = payload
+            try:
+                injected_url = requests.Request('GET', base, params=new_params).prepare().url
+                delay()
+                resp_payload = requests.get(injected_url, headers=get_headers(), timeout=10)
+
+                if not normal_response:
+                    normal_url = requests.Request('GET', base, params=params).prepare().url
+                    delay()
+                    normal_response = requests.get(normal_url, headers=get_headers(), timeout=10)
+
+                is_vuln = is_vulnerable(resp_payload.text, normal_response.text)
+
+                if is_vuln:
+                    print(Fore.GREEN + f"[injectable] {injected_url} [{resp_payload.status_code}]")
+                    vulnerable_links.append(injected_url)
+                    if writer:
+                        writer.writerow(["injectable", injected_url, time.strftime('%Y-%m-%d %H:%M:%S')])
+                else:
+                    print(Fore.RED + f"[not injectable] {injected_url} [{resp_payload.status_code}]")
+                    if writer:
+                        writer.writerow(["not injectable", injected_url, time.strftime('%Y-%m-%d %H:%M:%S')])
+            except Exception as e:
+                print(f"[!] Error on {injected_url}: {e}")
+    return vulnerable_links
+
+def prepare_csv(filename):
+    f = open(filename, 'w', newline='', encoding='utf-8')
+    writer = csv.writer(f)
+    writer.writerow(["Status", "URL", "Timestamp"])
+    return f, writer
+
+def detect_waf(url):
+    try:
+        response = requests.get(url, headers=get_headers(), timeout=10)
+        headers = response.headers
+        waf_signatures = [
+            "X-Sucuri-ID", "X-Akamai-Transformed", "X-CDN", "X-Frame-Options", "X-Mod-Security",
+            "Server: cloudflare", "X-Powered-By-AspNet", "X-Distil-CS"
+        ]
+        print("\n[WAF DETECTION]")
+        found = False
+        for key, value in headers.items():
+            for sig in waf_signatures:
+                if sig.lower() in key.lower() or sig.lower() in value.lower():
+                    print(f"{Fore.GREEN}[+] Potential WAF detected: {key}: {value}{Style.RESET_ALL}")
+                    found = True
+        if not found:
+            print(f"{Fore.YELLOW}[-] No WAF detected in common headers.{Style.RESET_ALL}")
+    except Exception as e:
+        print(f"{Fore.RED}[!] WAF Detection Error: {e}{Style.RESET_ALL}")
+
+def reverse_ip_lookup(domain):
+    print("\n[REVERSE IP]")
+    try:
+        ip = socket.gethostbyname(domain)
+        print(f"[+] Domain IP {domain}: {ip}")
+        url = f"https://api.hackertarget.com/reverseiplookup/?q={ip}"
+        resp = requests.get(url, headers=get_headers(), timeout=10)
+        if "error" in resp.text.lower():
+            print(f"{Fore.RED}[!] Error from Reverse IP service: {resp.text}{Style.RESET_ALL}")
+        else:
+            print(f"{Fore.CYAN}[+] Domains found on IP {ip}:{Style.RESET_ALL}\n{resp.text}")
+    except Exception as e:
+        print(f"{Fore.RED}[!] Reverse IP error: {e}{Style.RESET_ALL}")
+
+def crawl_recursive(url, depth=5, visited=None):
+    if visited is None:
+        visited = set()
+    if depth == 0 or url in visited:
+        return visited
+    try:
+        response = requests.get(url, headers=get_headers(), timeout=10)
+        visited.add(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        for tag in soup.find_all("a", href=True):
+            full_url = urljoin(url, tag["href"])
+            if urlparse(full_url).netloc == urlparse(url).netloc:
+                crawl_recursive(full_url, depth-1, visited)
+    except:
+        pass
+    return visited
+
+def enumerate_subdomains(domain):
+    print(f"{Fore.MAGENTA}\n[+] Subdomain enumeration for {domain}...{Style.RESET_ALL}")
+    subdomains = []
+    wordlist = ["www", "mail", "ftp", "webmail", "cpanel", "dev", "test", "api", "data", "upload", "admin", "login"]
+    for sub in wordlist:
+        subdomain = f"{sub}.{domain}"
+        try:
+            socket.gethostbyname(subdomain)
+            print(f"{Fore.GREEN}[+] Subdomain found: {subdomain}{Style.RESET_ALL}")
+            subdomains.append(f"http://{subdomain}")
+        except:
+            pass
+    return subdomains
+
+def main_menu():
+    while True:
+        print(f"""
+{Fore.CYAN}+-+-+-+-+-+-+-+{Style.RESET_ALL}
+{Fore.CYAN}|S|t|r|i|k|e|r|{Style.RESET_ALL}
+{Fore.CYAN}+-+-+-+-+-+-+-+{Style.RESET_ALL}
+{Fore.YELLOW} ___{Style.RESET_ALL}
+{Fore.YELLOW}__H__     {Fore.RED}     ⱽ¹ˑ⁷_ˣᴾˡᵒⁱᵗˢ³ᶜ{Style.RESET_ALL}
+{Fore.YELLOW} [{Fore.RED},{Fore.YELLOW}]{Style.RESET_ALL}
+{Fore.YELLOW} [{Fore.RED}){Fore.YELLOW}]{Style.RESET_ALL}
+{Fore.YELLOW} [{Fore.RED};{Fore.YELLOW}]{Style.RESET_ALL}
+{Fore.YELLOW} |_|    t.me/Striker{Style.RESET_ALL}
+{Fore.YELLOW}  V{Style.RESET_ALL}
+{Fore.RED}[!] Disclaimer: {Fore.YELLOW}Use the tool only on sites you own or with explicit authorization.{Style.RESET_ALL}
+{Fore.BLUE}===== GPTScanner ====={Style.RESET_ALL}
+1) SQL Injection
+2) XSS Injection
+3) LFI Injection
+4) Advanced Scan
+5) WAF Detection & Reverse IP
+6) Deep Crawler (--level=5)
+7) Subdomain Scanning
+0) Exit
+""")
+        scelta = input("Select an option: ")
+        if scelta in ["1", "2", "3", "4"]:
+            target = input("Enter URL (es. https://example.com): ").strip()
+            links = get_all_links(target)
+            links = filter_links_with_params(links)
+            if not links:
+                print(f"{Fore.RED}[!] No link with parameters found. Stopping the scan.{Style.RESET_ALL}")
+                continue
+            if scelta == "1":
+                payloads = load_payloads("sqli_payloads.txt")
+            elif scelta == "2":
+                payloads = load_payloads("xss_payloads.txt")
+            elif scelta == "3":
+                payloads = load_payloads("lfi_payloads.txt")
+            else:
+                path = input("Custom payload file path: ").strip()
+                payloads = load_payloads(path)
+            f, writer = prepare_csv("scan_results.csv")
+            for link in links:
+                test_single_url(link, payloads, writer)
+            f.close()
+            print("[+] Scan completed. Results saved in scan_results.csv")
+        elif scelta == "5":
+            target = input("Enter URL (es. https://example.com): ").strip()
+            detect_waf(target)
+            reverse_ip_lookup(urlparse(target).hostname)
+        elif scelta == "6":
+            target = input("Enter the starting URL: ").strip()
+            print("[*] Deep crawling at depth 5...")
+            results = crawl_recursive(target, depth=5)
+            with open("crawler_output.txt", "w", encoding="utf-8") as f:
+                for url in sorted(risultati):
+                    print(url)
+                    f.write(url + "\n")
+            print(f"[+] Crawling completed. {len(results)} URLs saved in crawler_output.txt")
+        elif scelta == "7":
+            domain = input("Enter URL (es. example.com): ").strip()
+            enumerate_subdomains(domain)
+        elif scelta == "0":
+            print("Exiting the program.")
+            break
+        else:
+            print("[!] Invalid option!")
+
+if __name__ == "__main__":
+    main_menu()
