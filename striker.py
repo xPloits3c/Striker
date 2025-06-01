@@ -161,7 +161,7 @@ def reverse_ip_lookup(domain):
     except Exception as e:
         print(f"{Fore.RED}[!] Reverse IP error: {e}{Style.RESET_ALL}")
 
-def crawl_recursive(url, depth=5, visited=None):
+def crawl_recursive(url, depth=3, visited=None):
     if visited is None:
         visited = set()
     if depth == 0 or url in visited:
@@ -211,7 +211,7 @@ def main_menu():
 3) LFI Injection
 4) Advanced Scan
 5) WAF Detection & Reverse IP
-6) Deep Crawler (--level=3)
+6) Crawler (URLs param)
 7) Subdomain Scanning
 0) Exit
 """)
@@ -243,7 +243,7 @@ def main_menu():
             reverse_ip_lookup(urlparse(target).hostname)
         elif scelta == "6":
             target = input("Enter the starting URL: ").strip()
-            print("[*] Deep crawling at depth 3...")
+            print("[*] Crawling at depth 3...")
             results = crawl_recursive(target, depth=3)
             with open("crawler_output.csv", "w", encoding="utf-8") as f:
                 for url in sorted(results):
