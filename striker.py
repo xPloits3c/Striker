@@ -107,7 +107,7 @@ def test_single_url(link, payloads, writer=None):
                     normal_response = requests.get(normal_url, headers=get_headers(), timeout=10)
 
                 is_vuln = is_vulnerable(resp_payload.text, normal_response.text)
-
+                
                 if is_vuln:
                     print(Fore.GREEN + f"[injectable] {injected_url} [{resp_payload.status_code}]")
                     vulnerable_links.append(injected_url)
