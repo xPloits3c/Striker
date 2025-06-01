@@ -26,7 +26,8 @@
 + Cross Site Scripting (XSS)
 + Local File Inclusion (LFI)
 
-![icon_SQL](https://github.com/user-attachments/assets/922b63de-9adf-44cd-9027-fd1aee6b22a2)
+![image](https://github.com/user-attachments/assets/a0b14da1-29be-48b7-83bf-53a323d61347)
+
 
 **✨ Key Features**
 --------------------------
@@ -68,17 +69,13 @@
 - `3) Payloads file (optional, default send): sqli.payloads.txt`
 - `4) Number of threads (default 5): 5`
 
-**💻 Screenshots**
---------------------------
-![photo_1_2025-05-03_15-29-31](https://github.com/user-attachments/assets/a8dd9565-c6e9-4420-87c3-fde6af8b4be8)
-![photo_5_2025-05-03_15-29-31](https://github.com/user-attachments/assets/1b5b5b7e-fe19-4d24-8fd0-d0c914cdb28e)
-![photo_4_2025-05-03_15-29-31](https: //github.com/user-attachments/assets/6d7c394a-50b9-43f6-91cb-20e38411edd5)
-![photo_2_2025-05-03_15-29-31](https://github.com/user-attachments/assets/a2994e83-ca21-4925-bb1e-6bfaa868266e)
-![photo_3_2025-05-03_15-29-31](https://github.com/user-attachments/assets/1957b754-32ae-4384-bb64-68d1d038a328)
+![image](https://github.com/user-attachments/assets/3488993c-b0c2-4d6f-b8f9-80a87e8783e8)
 
 **📝 CSV Output**
 -------------
 Each query is automatically saved in Format:`.csv`
+
+![image](https://github.com/user-attachments/assets/684bfd39-45a5-4662-9505-682718c13699)
 
 **🧠 Logic**
 ---------
