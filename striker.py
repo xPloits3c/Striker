@@ -54,9 +54,13 @@ def get_all_links(base_url):
 
     soup = BeautifulSoup(response.text, 'html.parser')
     links = set()
+    base_netloc = urlparse(base_url).netloc
+
     for tag in soup.find_all('a', href=True):
         full_url = urljoin(base_url, tag['href'])
-        links.add(full_url)
+        parsed = urlparse(full_url)
+        if parsed.netloc == base_netloc:
+            links.add(full_url)
 
     return list(links)
 
@@ -243,13 +247,17 @@ def main_menu():
             print("[*] Deep crawling at depth 5...")
             results = crawl_recursive(target, depth=5)
             with open("crawler_output.txt", "w", encoding="utf-8") as f:
-                for url in sorted(risultati):
+                for url in sorted(results):
                     print(url)
                     f.write(url + "\n")
             print(f"[+] Crawling completed. {len(results)} URLs saved in crawler_output.txt")
         elif scelta == "7":
-            domain = input("Enter URL (es. example.com): ").strip()
-            enumerate_subdomains(domain)
+    domain = input("Enter domain (es. example.com): ").strip()
+    found = enumerate_subdomains(domain)
+    with open("subdomains_found.csv", "w", encoding="utf-8") as f:
+        for sub in found:
+            f.write(sub + "\n")
+    print(f"[+] Subdomain scan completed. Results saved in subdomains_found.csv")
         elif scelta == "0":
             print("Exiting the program.")
             break
