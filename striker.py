@@ -202,8 +202,8 @@ def main_menu():
 {Fore.YELLOW} [{Fore.RED};{Fore.YELLOW}]  Striker{Style.RESET_ALL}
 {Fore.YELLOW} |_|{Fore.RED}    ⱽ¹ˑ⁷_ˣᴾˡᵒⁱᵗˢ³ᶜ{Style.RESET_ALL}
 {Fore.YELLOW}  V{Style.RESET_ALL}
-{Fore.RED}[!] Disclaimer: {Fore.YELLOW}Use the tool only on sites you own or with explicit authorization.{Style.RESET_ALL}
-{Fore.RED}[!]{Fore.YELLOW} Attacking targets without prior mutual consent is illegal.{Style.RESET_ALL}
+{Fore.RED}[!] Disclaimer: {Fore.YELLOW}Attacking targets without prior mutual consent is illegal.{Style.RESET_ALL}
+{Fore.RED}[!]{Fore.YELLOW} Use the tool only on sites you own or with explicit authorization.{Style.RESET_ALL}
 {Fore.RED}[!]{Fore.YELLOW} It is the end user's responsibility to obey all applicable local, state and federal laws.{Style.RESET_ALL}
 {Fore.BLUE}==============={Style.RESET_ALL}
 1) SQL Injection
