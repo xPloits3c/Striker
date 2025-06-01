@@ -1,5 +1,3 @@
-# gptscanner_v2_by_xPloits3c
-
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, parse_qs
@@ -254,12 +252,12 @@ def main_menu():
                     f.write(url + "\n")
             print(f"[+] Crawling completed. {len(results)} URLs saved in crawler_output.txt")
         elif scelta == "7":
-    domain = input("Enter domain (es. example.com): ").strip()
-    found = enumerate_subdomains(domain)
-    with open("subdomains_found.csv", "w", encoding="utf-8") as f:
-        for sub in found:
-            f.write(sub + "\n")
-    print(f"[+] Subdomain scan completed. Results saved in subdomains_found.csv")
+            domain = input("Enter domain (es. example.com): ").strip()
+            found = enumerate_subdomains(domain)
+            with open("subdomains_found.csv", "w", encoding="utf-8") as f:
+                for sub in found:
+                    f.write(sub + "\n")
+                    print(f"[+] Subdomain scan completed. Results saved in subdomains_found.csv")
         elif scelta == "0":
             print("Exiting the program.")
             break
