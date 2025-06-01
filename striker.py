@@ -195,30 +195,29 @@ def enumerate_subdomains(domain):
 def main_menu():
     while True:
         print(f"""
-{Fore.CYAN}+-+-+-+-+-+-+-+{Style.RESET_ALL}
-{Fore.CYAN}|S|t|r|i|k|e|r|{Style.RESET_ALL}
-{Fore.CYAN}+-+-+-+-+-+-+-+{Style.RESET_ALL}
 {Fore.YELLOW} ___{Style.RESET_ALL}
-{Fore.YELLOW}__H__     {Fore.RED}     ⱽ¹ˑ⁷_ˣᴾˡᵒⁱᵗˢ³ᶜ{Style.RESET_ALL}
+{Fore.YELLOW}__H__     {Fore.WHITE}     Advanced Vulnerability Scanner {Style.RESET_ALL}
 {Fore.YELLOW} [{Fore.RED},{Fore.YELLOW}]{Style.RESET_ALL}
 {Fore.YELLOW} [{Fore.RED}){Fore.YELLOW}]{Style.RESET_ALL}
-{Fore.YELLOW} [{Fore.RED};{Fore.YELLOW}]{Style.RESET_ALL}
-{Fore.YELLOW} |_|    t.me/Striker{Style.RESET_ALL}
+{Fore.YELLOW} [{Fore.RED};{Fore.YELLOW}]  Striker{Style.RESET_ALL}
+{Fore.YELLOW} |_|{Fore.RED}    ⱽ¹ˑ⁷_ˣᴾˡᵒⁱᵗˢ³ᶜ{Style.RESET_ALL}
 {Fore.YELLOW}  V{Style.RESET_ALL}
 {Fore.RED}[!] Disclaimer: {Fore.YELLOW}Use the tool only on sites you own or with explicit authorization.{Style.RESET_ALL}
-{Fore.BLUE}===== Striker ====={Style.RESET_ALL}
+{Fore.RED}[!]{Fore.YELLOW} Attacking targets without prior mutual consent is illegal.{Style.RESET_ALL}
+{Fore.RED}[!]{Fore.YELLOW} It is the end user's responsibility to obey all applicable local, state and federal laws.{Style.RESET_ALL}
+{Fore.BLUE}==============={Style.RESET_ALL}
 1) SQL Injection
 2) XSS Injection
 3) LFI Injection
 4) Advanced Scan
 5) WAF Detection & Reverse IP
-6) Deep Crawler (--level=5)
+6) Deep Crawler (--level=3)
 7) Subdomain Scanning
 0) Exit
 """)
         scelta = input("Select an option: ")
         if scelta in ["1", "2", "3", "4"]:
-            target = input("Enter URL (es. https://example.com): ").strip()
+            target = input("Enter URL with parameter(es. https://example.com/admin.php?id=): ").strip()
             links = get_all_links(target)
             links = filter_links_with_params(links)
             if not links:
@@ -244,13 +243,13 @@ def main_menu():
             reverse_ip_lookup(urlparse(target).hostname)
         elif scelta == "6":
             target = input("Enter the starting URL: ").strip()
-            print("[*] Deep crawling at depth 5...")
-            results = crawl_recursive(target, depth=5)
-            with open("crawler_output.txt", "w", encoding="utf-8") as f:
+            print("[*] Deep crawling at depth 3...")
+            results = crawl_recursive(target, depth=3)
+            with open("crawler_output.csv", "w", encoding="utf-8") as f:
                 for url in sorted(results):
                     print(url)
                     f.write(url + "\n")
-            print(f"[+] Crawling completed. {len(results)} URLs saved in crawler_output.txt")
+            print(f"[+] Crawling completed. {len(results)} URLs saved in crawler_output.csv")
         elif scelta == "7":
             domain = input("Enter domain (es. example.com): ").strip()
             found = enumerate_subdomains(domain)
