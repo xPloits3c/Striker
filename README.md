@@ -4,7 +4,7 @@
 
 <h1 align="center">🛡️ Striker</h1>
 <p align="center">
-  <strong>Advanced Vulnerability Scanner powered by xPloits3c</strong><br>
+  <strong>Advanced Vulnerability Scanner</strong><br>
   Lightweight | Modular | Reverse IP | SQLi, XSS, LFI & more
 </p>
 
