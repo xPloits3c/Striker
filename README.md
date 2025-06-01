@@ -5,7 +5,7 @@
 <h1 align="center">🛡️ Striker</h1>
 <p align="center">
   <strong>Advanced Vulnerability Scanner powered by xPloits3c</strong><br>
-  Lightweight | Modular | Reverse Ip | SQLi, XSS, LFI & more
+  Lightweight | Modular | Reverse IP | SQLi, XSS, LFI & more
 </p>
 
 <p align="center">
@@ -19,78 +19,77 @@
 ---
  ![Repo View Counter](https://profile-counter.glitch.me/GPTScanner/count.svg)
 
-**Striker è uno strumento avanzato scritto in Python per identificare eventuali vulnerabilità.**
+**Striker is an advanced tool written in Python to identify any vulnerability.**
 
-**Include scansione intelligente, payload personalizzati, interfaccia terminale avanzata ed esportazione dei risultati.**
-  + SQL Injection (SQLi)
-  + Cross Site Scripting (XSS)
-  + Local File Inclusion (LFI)
-    
+**Includes intelligent scanning, custom payloads, advanced terminal interface and results export.**
++ SQL Injection (SQLi)
++ Cross Site Scripting (XSS)
++ Local File Inclusion (LFI)
+
 ![icon_SQL](https://github.com/user-attachments/assets/922b63de-9adf-44cd-9027-fd1aee6b22a2)
 
-**✨ Funzionalità principali**
+**✨ Key Features**
 --------------------------
-  ✔️ Crawler Test vuln.
+✔️ Crawler Test vuln.
 
-  ✔️ Testing SQLi-XSS-LFI con payload personalizzati o di default.
+✔️ SQLi-XSS-LFI testing with custom or default payloads.
 
-  ✔️ Web Application Firewall (WAF)
+✔️ Web Application Firewall (WAF)
 
-  ✔️ Reverse IP 
+✔️ Reverse IP
 
-  ✔️ Evidenziazione in tempo reale:
+✔️ Real-time highlighting:
 
-  ✔️ Barra di avanzamento (tqdm)
+✔️ Progress bar (tqdm)
 
-  ✔️ Esportazione risultati automatica in .CSV
+✔️ Automatic results export to .CSV
 
-  ✔️ Multi-threading per velocità
+✔️ Multi-threading for speed
 
-**⚙️ Requisiti**
--------------
-  - Python 3.7+
-  - Moduli richiesti:
-    - `requests`
-    - `beautifulsoup4`
-    - `tqdm`
-    - `colorama`
+**⚙️ Requirements**
+------------
+- Python 3.7+
+- Required modules:
+- `requests`
+- `beautifulsoup4`
+- `tqdm`
+- `colorama`
 
-## ⚙️ Installazione
-  +     git clone https://github.com/xPloits3c/Striker.git
-  +     cd Striker
-  +     pip install -r requirements.txt
-  +     python3 striker.py
+## ⚙️ Installation
++ git clone https://github.com/xPloits3c/Striker.git
++ cd Striker
++ pip install -r requirements.txt
++ python3 striker.py
 
-**▶️ Esempio d’uso**
+**▶️ Example of use**
 ----------------
 - `1) python3 striker.py`
-- `2) Scansione personalizzata.`
-- `3) File payloads (opzionale, invio per default): sqli.payloads.txt`
-- `4) Numero di threads (default 5): 5`
+- `2) Custom scan.`
+- `3) Payloads file (optional, default send): sqli.payloads.txt`
+- `4) Number of threads (default 5): 5`
 
 **💻 Screenshots**
 --------------------------
 ![photo_1_2025-05-03_15-29-31](https://github.com/user-attachments/assets/a8dd9565-c6e9-4420-87c3-fde6af8b4be8)
 ![photo_5_2025-05-03_15-29-31](https://github.com/user-attachments/assets/1b5b5b7e-fe19-4d24-8fd0-d0c914cdb28e)
-![photo_4_2025-05-03_15-29-31](https://github.com/user-attachments/assets/6d7c394a-50b9-43f6-91cb-20e38411edd5)
+![photo_4_2025-05-03_15-29-31](https: //github.com/user-attachments/assets/6d7c394a-50b9-43f6-91cb-20e38411edd5)
 ![photo_2_2025-05-03_15-29-31](https://github.com/user-attachments/assets/a2994e83-ca21-4925-bb1e-6bfaa868266e)
 ![photo_3_2025-05-03_15-29-31](https://github.com/user-attachments/assets/1957b754-32ae-4384-bb64-68d1d038a328)
 
-**📝 Output CSV**
---------------
-Ogni ricerca viene salvata automaticamente in Formato:`.csv`
+**📝 CSV Output**
+-------------
+Each query is automatically saved in Format:`.csv`
 
-**🧠 Logica**
-----------
-Il tool confronta la risposta normale con quella modificata. Se:
-  - Contiene parole chiave sospette (es. "sql error", "syntax").
-  - O è significativamente diversa in contenuto.
-  - Allora il link è segnalato come **vulnerabile**.
+**🧠 Logic**
+---------
+The tool compares the normal response with the modified one. If:
+- It contains suspicious keywords (e.g. "sql error", "syntax").
+- Or is significantly different in content.
+- Then the link is flagged as **vulnerable**.
 
-**👨‍💻 Autore**
+**👨‍💻 Author**
 -----------
-Sviluppato con passione da: **`xPloits3c`** con: **`Open-Ai`**
+Developed with passion by: **`xPloits3c`** with: **`Open-Ai`**
 
-Licenza: MIT
-Contatto: whitehat.report@onionmail.org
-
+License: MIT
+Contact: whitehat.report@onionmail.org
