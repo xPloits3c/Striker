@@ -205,7 +205,7 @@ def main_menu():
 {Fore.RED}[!] Disclaimer: {Fore.YELLOW}Attacking targets without prior mutual consent is illegal.{Style.RESET_ALL}
 {Fore.RED}[!]{Fore.YELLOW} Use the tool only on sites you own or with explicit authorization.{Style.RESET_ALL}
 {Fore.RED}[!]{Fore.YELLOW} It is the end user's responsibility to obey all applicable local, state and federal laws.{Style.RESET_ALL}
-{Fore.BLUE}==============={Style.RESET_ALL}
+{Fore.BLUE}================{Style.RESET_ALL}
 1) SQL Injection
 2) XSS Injection
 3) LFI Injection
