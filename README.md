@@ -1,9 +1,10 @@
-![GPTScanner_logo_v1 0](https://github.com/user-attachments/assets/15743220-4e60-48fc-a7e8-b26755f8d7d7)
+![image](https://github.com/user-attachments/assets/c5423940-3a46-4301-80c5-b15704a85d70)
 
 
-<h1 align="center">🛡️ |G|P|T|-|S|c|a|n|n|e|r|</h1>
+
+<h1 align="center">🛡️ Striker</h1>
 <p align="center">
-  <strong>Advanced Vulnerability Scanner powered by OPEN-AI</strong><br>
+  <strong>Advanced Vulnerability Scanner powered by xPloits3c</strong><br>
   Lightweight | Modular | Reverse Ip | SQLi, XSS, LFI & more
 </p>
 
@@ -18,7 +19,7 @@
 ---
  ![Repo View Counter](https://profile-counter.glitch.me/GPTScanner/count.svg)
 
-**GPTScanner è uno strumento avanzato scritto in Python per identificare eventuali vulnerabilità.**
+**Striker è uno strumento avanzato scritto in Python per identificare eventuali vulnerabilità.**
 
 **Include scansione intelligente, payload personalizzati, interfaccia terminale avanzata ed esportazione dei risultati.**
   + SQL Injection (SQLi)
@@ -39,9 +40,6 @@
 
   ✔️ Evidenziazione in tempo reale:
 
-    ✅ Verde: VULNERABILE
-    ❌ Rosso: NON vulnerabile
-
   ✔️ Barra di avanzamento (tqdm)
 
   ✔️ Esportazione risultati automatica in .CSV
@@ -58,29 +56,17 @@
     - `colorama`
 
 ## ⚙️ Installazione
-  +     git clone https://github.com/xPloits3c/GPTScanner.git
-  +     cd GPTScanner
+  +     git clone https://github.com/xPloits3c/Striker.git
+  +     cd Striker
   +     pip install -r requirements.txt
-  +     python3 gptscanner.py
+  +     python3 striker.py
 
 **▶️ Esempio d’uso**
 ----------------
-- `1) python3 gptscanner.py`
+- `1) python3 striker.py`
 - `2) Scansione personalizzata.`
 - `3) File payloads (opzionale, invio per default): sqli.payloads.txt`
 - `4) Numero di threads (default 5): 5`
-
-**🛡️ Prossime funzioni**
----------------------
-  - Word Press Scanner Vulnerability.
-  - Dump database se: Vulnerabile.
-  - Stringhe di comando direttamente dal terminale.
-  - Vedi GPTScanner_v2.0 https://github.com/xPloits3c/GPTScanner/releases/tag/GPTScanner_v2.0
-  - Esecuzione diretta:
-  - `-u` : URL target.
-  - `--dump` : Dump Database.
-  - `--wp` : WordPress Scanner.
-  - `-m` : Load Target List.
 
 **💻 Screenshots**
 --------------------------
@@ -106,4 +92,5 @@ Il tool confronta la risposta normale con quella modificata. Se:
 Sviluppato con passione da: **`xPloits3c`** con: **`Open-Ai`**
 
 Licenza: MIT
+Contatto: whitehat.report@onionmail.org
 
