@@ -95,7 +95,7 @@ def load_payloads(path=None):
     if path and os.path.exists(path):
         with open(path, 'r', encoding='utf-8') as f:
             payloads = [line.strip() for line in f if line.strip()]
-            print(f"{Fore.WHITE}[*]{Fore.YELLOW} Loaded {len(payloads)} payloads from {path}{Style.RESET_ALL}")
+            print(f"{Fore.WHITE}[*]{Fore.YELLOW} Loaded{Fore.RED} {len(payloads)}{Fore.YELLOW} payloads{Fore.YELLOW} from{Fore.RED} {path}{Style.RESET_ALL}")
             return payloads
     default_payloads = ["'", "' OR '1'='1", "'; DROP TABLE users; --"]
     print(f"{Fore.YELLOW}[!] Payload file not found, uploading default payloads... ({len(default_payloads)}).{Style.RESET_ALL}")
@@ -122,7 +122,7 @@ def get_all_links(base_url):
 
 def filter_links_with_params(links):
     filtered = [link for link in links if '?' in link]
-    print(f"{Fore.WHITE}[*]{Fore.YELLOW} Link with parameters, found: {len(filtered)}{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}[*]{Fore.YELLOW} Link with {Fore.RED}parameters{Fore.YELLOW}, found: {len(filtered)}{Style.RESET_ALL}")
     return filtered
 
 def is_significantly_different(resp1, resp2):
@@ -260,7 +260,7 @@ def forced_parameter_injection():
         print(f"{Fore.RED}[!] common_params.txt not found! Please create the file in the script directory.{Style.RESET_ALL}")
         return
 
-    print(f"{Fore.WHITE}[*]{Fore.YELLOW} Loaded {len(params_list)} test{Fore.RED} parameters.{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}[*]{Fore.YELLOW} Loaded{Fore.RED} {len(params_list)}{Fore.YELLOW} test{Fore.RED} parameters.{Style.RESET_ALL}")
     results = []
 
     try:
