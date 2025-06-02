@@ -107,7 +107,7 @@ def test_single_url(link, payloads, writer=None):
                     normal_response = requests.get(normal_url, headers=get_headers(), timeout=10)
 
                 is_vuln = is_vulnerable(resp_payload.text, normal_response.text)
-                
+
                 if is_vuln:
                     print(Fore.GREEN + f"[injectable] {injected_url} [{resp_payload.status_code}]")
                     vulnerable_links.append(injected_url)
@@ -206,18 +206,18 @@ def main_menu():
 {Fore.RED}[!]{Fore.YELLOW} Use the tool only on sites you own or with explicit authorization.{Style.RESET_ALL}
 {Fore.RED}[!]{Fore.YELLOW} It is the end user's responsibility to obey all applicable local, state and federal laws.{Style.RESET_ALL}
 {Fore.BLUE}================{Style.RESET_ALL}
-1) SQL Injection
-2) XSS Injection
-3) LFI Injection
-4) Advanced Scan
-5) WAF Detection & Reverse IP
-6) Crawler (URLs param)
-7) Subdomain Scanning
-0) Exit
+1){Fore.YELLOW} SQL{Fore.RED} Injection{Style.RESET_ALL}
+2){Fore.YELLOW} XSS{Fore.RED} Injection{Style.RESET_ALL}
+3){Fore.YELLOW} LFI{Fore.RED} Injection{Style.RESET_ALL}
+4){Fore.YELLOW} Advanced{Style.RESET_ALL} Scan
+5){Fore.YELLOW} WAF Detection{Style.RESET_ALL} &{Fore.YELLOW} Reverse IP{Style.RESET_ALL}
+6){Fore.YELLOW} Crawler{Style.RESET_ALL} ({Fore.BLUE}--level=3{Style.RESET_ALL})
+7){Fore.YELLOW} Subdomain{Style.RESET_ALL} Scan
+0){Fore.RED} Exit{Style.RESET_ALL}
 """)
         scelta = input("Select an option: ")
         if scelta in ["1", "2", "3", "4"]:
-            target = input("Enter URL with parameter(es. https://example.com/admin.php?id=): ").strip()
+            target = input("Enter URL with parameter: ").strip()
             links = get_all_links(target)
             links = filter_links_with_params(links)
             if not links:
@@ -243,7 +243,7 @@ def main_menu():
             reverse_ip_lookup(urlparse(target).hostname)
         elif scelta == "6":
             target = input("Enter the starting URL: ").strip()
-            print("[*] Crawling at depth 3...")
+            print("{Fore.RED}[*]{Fore.YELLOW} Crawling at depth 3{Fore.GREEN}...{Style.RESET_ALL}")
             results = crawl_recursive(target, depth=3)
             with open("crawler_output.csv", "w", encoding="utf-8") as f:
                 for url in sorted(results):
