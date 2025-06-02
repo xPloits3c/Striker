@@ -27,6 +27,62 @@ USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.6422.112 Safari/537.36 OPR/110.0.5168.42"
 ]
 
+waf_signatures = [
+    "X-Sucuri-ID",
+    "X-Sucuri-Cloudproxy",
+    "X-Akamai-Transformed",
+    "X-CDN",
+    "X-Frame-Options",
+    "X-Mod-Security",
+    "X-Powered-By-AspNet",
+    "X-Distil-CS",
+    "X-Imunify360-Block",
+    "X-Moz",
+    "X-Powered-By-Anquanbao",
+    "X-Powered-By-Tencent",
+    "X-Powered-By-360wzb",
+    "X-Cache",
+    "X-Cache-Status",
+    "X-WAF-Detected",
+    "X-WAF",
+    "X-Powered-By",
+    "X-Firewall",
+    "X-Request-ID",
+    "X-Barracuda-Proxy",
+    "Server",
+    "CF-RAY",
+    "CDN-Loop",
+    "X-Azure-Ref",
+    "X-Cdn",
+    "X-Application-Context",
+    "Strict-Transport-Security"
+]
+
+waf_value_patterns = [
+    "cloudflare",
+    "sucuri",
+    "akamai",
+    "incapsula",
+    "360wzb",
+    "f5",
+    "barracuda",
+    "aws",
+    "azure",
+    "mod_security",
+    "edgecast",
+    "tencent",
+    "anquanbao",
+    "yunsuo",
+    "netscaler",
+    "radware",
+    "denyall",
+    "fortiweb",
+    "sitelock",
+    "wallarm",
+    "dotdefender",
+    "profense"
+]
+
 def get_headers():
     return {
         "User-Agent": random.choice(USER_AGENTS)
@@ -141,21 +197,24 @@ def detect_waf(url):
     try:
         response = requests.get(url, headers=get_headers(), timeout=10)
         headers = response.headers
-        waf_signatures = [
-            "X-Sucuri-ID", "X-Akamai-Transformed", "X-CDN", "X-Frame-Options", "X-Mod-Security",
-            "Server: cloudflare", "X-Powered-By-AspNet", "X-Distil-CS"
-        ]
-        print("\n[WAF DETECTION]")
+        print(f"\n{Fore.CYAN}[*] WAF Detection...{Style.RESET_ALL}")
         found = False
+
         for key, value in headers.items():
             for sig in waf_signatures:
-                if sig.lower() in key.lower() or sig.lower() in value.lower():
-                    print(f"{Fore.GREEN}[+] Potential WAF detected: {key}: {value}{Style.RESET_ALL}")
+                if sig.lower() in key.lower():
+                    print(f"{Fore.GREEN}[+] Header match: {key}: {value}{Style.RESET_ALL}")
                     found = True
+            for pattern in waf_value_patterns:
+                if pattern in value.lower():
+                    print(f"{Fore.GREEN}[+] Value match: {key}: {value}{Style.RESET_ALL}")
+                    found = True
+
         if not found:
             print(f"{Fore.YELLOW}[-] No WAF detected in common headers.{Style.RESET_ALL}")
+
     except Exception as e:
-        print(f"{Fore.RED}[!] WAF Detection Error: {e}{Style.RESET_ALL}")
+        print(f"{Fore.RED}[!] WAF detection error: {e}{Style.RESET_ALL}")
 
 def reverse_ip_lookup(domain):
     print("\n[REVERSE IP]")
@@ -233,7 +292,7 @@ def forced_parameter_injection():
         writer.writerow(["Status", "URL", "Timestamp"])
         writer.writerows(results)
 
-    print(f"{Fore.YELLOW}[+] Bruteforce completed. Results saved in forced_param_results.csv{Style.RESET_ALL}")
+    print(f"{Fore.GREEN}[+]{Fore.YELLOW} Bruteforce completed. Results saved in forced_param_results.csv{Style.RESET_ALL}")
 
 def main_menu():
     while True:
