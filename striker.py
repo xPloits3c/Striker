@@ -117,7 +117,7 @@ def test_single_url(link, payloads, writer=None):
 
                 if is_vuln:
                       if resp_payload.status_code == 404:
-                          print(f"{Fore.YELLOW}[WRN 404] {injected_url} [{resp_payload.status_code}]{Style.RESET_ALL}")
+                          print(f"{Fore.YELLOW}[WRN] {injected_url} [{resp_payload.status_code}]{Style.RESET_ALL}")
                 else:
                      print(f"{Fore.GREEN}[injectable] {injected_url} [{resp_payload.status_code}]{Style.RESET_ALL}")
                 vulnerable_links.append(injected_url)
@@ -220,10 +220,10 @@ def forced_parameter_injection():
                  print(Fore.YELLOW + f"[WRN 404] {test_url} [{test_resp.status_code}]")
                  results.append(("WRN 404", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
             elif is_vulnerable(test_resp.text, normal_resp.text):
-                 print(Fore.GREEN + f"[VULNERABLE] {test_url} [{test_resp.status_code}]")
-                 results.append(("VULNERABLE", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
+                 print(Fore.GREEN + f"[VULN] {test_url} [{test_resp.status_code}]")
+                 results.append(("VULN", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
             else:
-                print(Fore.RED + f"[NOT VULNERABLE] {test_url} [{test_resp.status_code}]")
+                print(Fore.RED + f"[NOT VULN] {test_url} [{test_resp.status_code}]")
                 results.append(("NOT VULNERABLE", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
         except Exception as e:
             print(f"[!] Error on {test_url}: {e}")
