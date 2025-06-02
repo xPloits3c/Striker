@@ -1,5 +1,16 @@
 id
-page
+id=
+id=1
+idcat
+idcat=
+idcat=1
+idCat
+idCat=
+idCat=1
+catID
+catID=
+catID=1
+pag
 lang
 query
 search
