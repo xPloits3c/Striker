@@ -243,7 +243,7 @@ def main_menu():
             reverse_ip_lookup(urlparse(target).hostname)
         elif scelta == "6":
             target = input("Enter the starting URL: ").strip()
-            print("{Fore.RED}[*]{Fore.YELLOW} Crawling at depth 3{Fore.GREEN}...{Style.RESET_ALL}")
+            print(f"{Fore.RED}[*]{Fore.YELLOW} Crawling at depth 3{Fore.GREEN}...{Style.RESET_ALL}")
             results = crawl_recursive(target, depth=3)
             with open("crawler_output.csv", "w", encoding="utf-8") as f:
                 for url in sorted(results):
