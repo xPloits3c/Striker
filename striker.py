@@ -117,7 +117,7 @@ def test_single_url(link, payloads, writer=None):
 
                 if is_vuln:
                       if resp_payload.status_code == 404:
-                          print(f"{Fore.YELLOW}[WRN] {injected_url} [{resp_payload.status_code}]{Style.RESET_ALL}")
+                          print(f"{Fore.YELLOW}[WRN 404] {injected_url} [{resp_payload.status_code}]{Style.RESET_ALL}")
                 else:
                      print(f"{Fore.GREEN}[injectable] {injected_url} [{resp_payload.status_code}]{Style.RESET_ALL}")
                 vulnerable_links.append(injected_url)
@@ -224,7 +224,7 @@ def forced_parameter_injection():
                  results.append(("VULN", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
             else:
                 print(Fore.RED + f"[NOT VULN] {test_url} [{test_resp.status_code}]")
-                results.append(("NOT VULNERABLE", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
+                results.append(("NOT VULN", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
         except Exception as e:
             print(f"[!] Error on {test_url}: {e}")
 
@@ -233,7 +233,7 @@ def forced_parameter_injection():
         writer.writerow(["Status", "URL", "Timestamp"])
         writer.writerows(results)
 
-    print(f"\n[+] Bruteforce completed. Results saved in forced_param_results.csv")
+    print(f"{Fore.YELLOW}[+] Bruteforce completed. Results saved in forced_param_results.csv{Style.RESET_ALL}")
 
 def main_menu():
     while True:
