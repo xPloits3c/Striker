@@ -2,13 +2,13 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse, parse_qs
 import argparse
-import csv
 import os
+import csv
 import time
 import socket
 import random
-import re
 from tqdm import tqdm
+from difflib import SequenceMatcher
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from colorama import Fore, Style, init
 
@@ -33,7 +33,7 @@ def get_headers():
     }
 
 def delay():
-    time.sleep(random.uniform(0.5, 2.0))
+    time.sleep(random.uniform(0.5, 1.5))
 
 def load_payloads(path=None):
     if path and os.path.exists(path):
@@ -79,11 +79,18 @@ def is_significantly_different(resp1, resp2):
     return diff_ratio > 0.2
 
 def is_vulnerable(injected_text, normal_text):
-    common_errors = ["sql", "syntax", "mysql", "you have an error", "warning", "xss", "<script", "etc/passwd"]
     injected_text = injected_text.lower()
-    if any(error in injected_text for error in common_errors):
+    normal_text = normal_text.lower()
+    
+    common_errors = ["sql syntax", "mysql", "you have an error", "warning", "unexpected", "xss", "<script", "unterminated", "missing"]
+    if any(err in injected_text for err in common_errors):
         return True
-    return is_significantly_different(injected_text, normal_text)
+
+    similarity = SequenceMatcher(None, injected_text, normal_text).ratio()
+    if similarity < 0.85:
+        return True
+
+    return False
 
 def test_single_url(link, payloads, writer=None):
     parsed = urlparse(link)
@@ -109,12 +116,15 @@ def test_single_url(link, payloads, writer=None):
                 is_vuln = is_vulnerable(resp_payload.text, normal_response.text)
 
                 if is_vuln:
-                    print(Fore.GREEN + f"[injectable] {injected_url} [{resp_payload.status_code}]")
-                    vulnerable_links.append(injected_url)
-                    if writer:
-                        writer.writerow(["injectable", injected_url, time.strftime('%Y-%m-%d %H:%M:%S')])
+                      if resp_payload.status_code == 404:
+                          print(f"{Fore.YELLOW}[WRN 404] {injected_url} [{resp_payload.status_code}]{Style.RESET_ALL}")
                 else:
-                    print(Fore.RED + f"[not injectable] {injected_url} [{resp_payload.status_code}]")
+                     print(f"{Fore.GREEN}[injectable] {injected_url} [{resp_payload.status_code}]{Style.RESET_ALL}")
+                vulnerable_links.append(injected_url)
+                if writer:
+                    writer.writerow(["injectable", injected_url, time.strftime('%Y-%m-%d %H:%M:%S')])
+                else:
+                    print(f"{Fore.RED}[not injectable] {injected_url} [{resp_payload.status_code}]{Style.RESET_ALL}")
                     if writer:
                         writer.writerow(["not injectable", injected_url, time.strftime('%Y-%m-%d %H:%M:%S')])
             except Exception as e:
@@ -178,19 +188,52 @@ def crawl_recursive(url, depth=3, visited=None):
         pass
     return visited
 
-def enumerate_subdomains(domain):
-    print(f"{Fore.MAGENTA}\n[+] Subdomain enumeration for {domain}...{Style.RESET_ALL}")
-    subdomains = []
-    wordlist = ["www", "mail", "ftp", "webmail", "cpanel", "dev", "test", "api", "data", "upload", "admin", "login"]
-    for sub in wordlist:
-        subdomain = f"{sub}.{domain}"
+def forced_parameter_injection():
+    target = input("Enter base URL (e.g., https://example.com/page): ").strip()
+    if '?' in target:
+        print(f"{Fore.RED}[!] URL already contains parameters. This module is for URLs without parameters.{Style.RESET_ALL}")
+        return
+
+    try:
+        with open("common_params.txt", "r", encoding="utf-8") as f:
+            params_list = [line.strip() for line in f if line.strip()]
+    except FileNotFoundError:
+        print(f"{Fore.RED}[!] common_params.txt not found! Please create the file in the script directory.{Style.RESET_ALL}")
+        return
+
+    print(f"{Fore.YELLOW}[*] Loaded {len(params_list)} test parameters.{Style.RESET_ALL}")
+    results = []
+
+    try:
+        delay()
+        normal_resp = requests.get(target, headers=get_headers(), timeout=10)
+    except Exception as e:
+        print(f"[!] Error fetching normal response: {e}")
+        return
+
+    for param in params_list:
+        test_url = f"{target}?{param}"
         try:
-            socket.gethostbyname(subdomain)
-            print(f"{Fore.GREEN}[+] Subdomain found: {subdomain}{Style.RESET_ALL}")
-            subdomains.append(f"http://{subdomain}")
-        except:
-            pass
-    return subdomains
+            delay()
+            test_resp = requests.get(test_url, headers=get_headers(), timeout=10)
+            if test_resp.status_code == 404:
+                 print(Fore.YELLOW + f"[WRN 404] {test_url} [{test_resp.status_code}]")
+                 results.append(("WRN 404", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
+            elif is_vulnerable(test_resp.text, normal_resp.text):
+                 print(Fore.GREEN + f"[VULNERABLE] {test_url} [{test_resp.status_code}]")
+                 results.append(("VULNERABLE", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
+            else:
+                print(Fore.RED + f"[NOT VULNERABLE] {test_url} [{test_resp.status_code}]")
+                results.append(("NOT VULNERABLE", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
+        except Exception as e:
+            print(f"[!] Error on {test_url}: {e}")
+
+    with open("forced_param_results.csv", "w", newline='', encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["Status", "URL", "Timestamp"])
+        writer.writerows(results)
+
+    print(f"\n[+] Bruteforce completed. Results saved in forced_param_results.csv")
 
 def main_menu():
     while True:
@@ -212,7 +255,7 @@ def main_menu():
 4){Fore.YELLOW} Advanced{Style.RESET_ALL} Scan
 5){Fore.YELLOW} WAF Detection{Style.RESET_ALL} &{Fore.YELLOW} Reverse IP{Style.RESET_ALL}
 6){Fore.YELLOW} Crawler{Style.RESET_ALL} ({Fore.BLUE}--level=3{Style.RESET_ALL})
-7){Fore.YELLOW} Subdomain{Style.RESET_ALL} Scan
+7){Fore.YELLOW} Bruteforce{Fore.RED} Params{Style.RESET_ALL}
 0){Fore.RED} Exit{Style.RESET_ALL}
 """)
         scelta = input("Select an option: ")
@@ -251,12 +294,7 @@ def main_menu():
                     f.write(url + "\n")
             print(f"[+] Crawling completed. {len(results)} URLs saved in crawler_output.csv")
         elif scelta == "7":
-            domain = input("Enter domain (es. example.com): ").strip()
-            found = enumerate_subdomains(domain)
-            with open("subdomains_found.csv", "w", encoding="utf-8") as f:
-                for sub in found:
-                    f.write(sub + "\n")
-                    print(f"[+] Subdomain scan completed. Results saved in subdomains_found.csv")
+            forced_parameter_injection()
         elif scelta == "0":
             print("Exiting the program.")
             break
