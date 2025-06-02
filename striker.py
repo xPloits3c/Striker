@@ -95,7 +95,7 @@ def load_payloads(path=None):
     if path and os.path.exists(path):
         with open(path, 'r', encoding='utf-8') as f:
             payloads = [line.strip() for line in f if line.strip()]
-            print(f"{Fore.YELLOW}[*] Loaded {len(payloads)} payloads from {path}{Style.RESET_ALL}")
+            print(f"{Fore.WHITE}[*]{Fore.YELLOW} Loaded {len(payloads)} payloads from {path}{Style.RESET_ALL}")
             return payloads
     default_payloads = ["'", "' OR '1'='1", "'; DROP TABLE users; --"]
     print(f"{Fore.YELLOW}[!] Payload file not found, uploading default payloads... ({len(default_payloads)}).{Style.RESET_ALL}")
@@ -122,7 +122,7 @@ def get_all_links(base_url):
 
 def filter_links_with_params(links):
     filtered = [link for link in links if '?' in link]
-    print(f"{Fore.CYAN}[*] Link with parameters, found: {len(filtered)}{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}[*]{Fore.YELLOW} Link with parameters, found: {len(filtered)}{Style.RESET_ALL}")
     return filtered
 
 def is_significantly_different(resp1, resp2):
@@ -173,7 +173,7 @@ def test_single_url(link, payloads, writer=None):
 
                 if is_vuln:
                       if resp_payload.status_code == 404:
-                          print(f"{Fore.YELLOW}[WRN 404] {injected_url} [{resp_payload.status_code}]{Style.RESET_ALL}")
+                          print(f"{Fore.YELLOW}[WRN{Fore.RED} 404{Fore.YELLOW}] {injected_url} [{resp_payload.status_code}]{Style.RESET_ALL}")
                 else:
                      print(f"{Fore.GREEN}[injectable] {injected_url} [{resp_payload.status_code}]{Style.RESET_ALL}")
                 vulnerable_links.append(injected_url)
@@ -184,7 +184,7 @@ def test_single_url(link, payloads, writer=None):
                     if writer:
                         writer.writerow(["not injectable", injected_url, time.strftime('%Y-%m-%d %H:%M:%S')])
             except Exception as e:
-                print(f"[!] Error on {injected_url}: {e}")
+                print(f"{Fore.WHITE}[!]{Fore.RED} Error on{Fore.YELLOW}{injected_url}: {e}{Style.RESET_ALL}")
     return vulnerable_links
 
 def prepare_csv(filename):
@@ -197,17 +197,17 @@ def detect_waf(url):
     try:
         response = requests.get(url, headers=get_headers(), timeout=10)
         headers = response.headers
-        print(f"\n{Fore.CYAN}[*] WAF Detection...{Style.RESET_ALL}")
+        print(f"\n{Fore.WHITE}[*]{Fore.YELLOW} WAF Detection...{Style.RESET_ALL}")
         found = False
 
         for key, value in headers.items():
             for sig in waf_signatures:
                 if sig.lower() in key.lower():
-                    print(f"{Fore.GREEN}[+] Header match: {key}: {value}{Style.RESET_ALL}")
+                    print(f"{Fore.WHITE}[+]{Fore.YELLOW} Header match: {key}: {value}{Style.RESET_ALL}")
                     found = True
             for pattern in waf_value_patterns:
                 if pattern in value.lower():
-                    print(f"{Fore.GREEN}[+] Value match: {key}: {value}{Style.RESET_ALL}")
+                    print(f"{Fore.WHITE}[+]{Fore.YELLOW} Value match: {key}: {value}{Style.RESET_ALL}")
                     found = True
 
         if not found:
@@ -220,13 +220,13 @@ def reverse_ip_lookup(domain):
     print("\n[REVERSE IP]")
     try:
         ip = socket.gethostbyname(domain)
-        print(f"[+] Domain IP {domain}: {ip}")
+        print(f"{Fore.WHITE}[+]{Fore.YELLOW} Domain IP {domain}: {ip}")
         url = f"https://api.hackertarget.com/reverseiplookup/?q={ip}"
         resp = requests.get(url, headers=get_headers(), timeout=10)
         if "error" in resp.text.lower():
             print(f"{Fore.RED}[!] Error from Reverse IP service: {resp.text}{Style.RESET_ALL}")
         else:
-            print(f"{Fore.CYAN}[+] Domains found on IP {ip}:{Style.RESET_ALL}\n{resp.text}")
+            print(f"{Fore.WHITE}[+]{Fore.YELLOW} Domains found on IP {ip}:{Style.RESET_ALL}\n{resp.text}")
     except Exception as e:
         print(f"{Fore.RED}[!] Reverse IP error: {e}{Style.RESET_ALL}")
 
@@ -260,7 +260,7 @@ def forced_parameter_injection():
         print(f"{Fore.RED}[!] common_params.txt not found! Please create the file in the script directory.{Style.RESET_ALL}")
         return
 
-    print(f"{Fore.YELLOW}[*] Loaded {len(params_list)} test parameters.{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}[*]{Fore.YELLOW} Loaded {len(params_list)} test{Fore.RED} parameters.{Style.RESET_ALL}")
     results = []
 
     try:
@@ -276,8 +276,8 @@ def forced_parameter_injection():
             delay()
             test_resp = requests.get(test_url, headers=get_headers(), timeout=10)
             if test_resp.status_code == 404:
-                 print(Fore.YELLOW + f"[WRN 404] {test_url} [{test_resp.status_code}]")
-                 results.append(("WRN 404", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
+                 print(f"{Fore.YELLOW}[WRN{Fore.RED} 404{Fore.YELLOW}] {test_url} [{test_resp.status_code}]{Style.RESET_ALL}")
+                 results.append(("WRN", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
             elif is_vulnerable(test_resp.text, normal_resp.text):
                  print(Fore.GREEN + f"[VULN] {test_url} [{test_resp.status_code}]")
                  results.append(("VULN", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
@@ -292,7 +292,8 @@ def forced_parameter_injection():
         writer.writerow(["Status", "URL", "Timestamp"])
         writer.writerows(results)
 
-    print(f"{Fore.GREEN}[+]{Fore.YELLOW} Bruteforce completed. Results saved in forced_param_results.csv{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}[+]{Fore.YELLOW} Bruteforce completed.{Style.RESET_ALL}")
+    print(f"{Fore.WHITE}[+]{Fore.YELLOW} Results saved in forced_param_results.csv{Style.RESET_ALL}")
 
 def main_menu():
     while True:
@@ -338,20 +339,22 @@ def main_menu():
             for link in links:
                 test_single_url(link, payloads, writer)
             f.close()
-            print("[+] Scan completed. Results saved in scan_results.csv")
+            print(f"{Fore.WHITE}[+]{Fore.YELLOW} Scan completed.{Style.RESET_ALL}")
+            print(f"{Fore.WHITE}[+]{Fore.YELLOW} Results saved in scan_results.csv{Style.RESET_ALL}")
         elif scelta == "5":
             target = input("Enter URL (es. https://example.com): ").strip()
             detect_waf(target)
             reverse_ip_lookup(urlparse(target).hostname)
         elif scelta == "6":
             target = input("Enter the starting URL: ").strip()
-            print(f"{Fore.RED}[*]{Fore.YELLOW} Crawling at depth 3{Fore.GREEN}...{Style.RESET_ALL}")
+            print(f"{Fore.WHITE}[*]{Fore.YELLOW} Crawling at depth 3{Fore.GREEN} ...{Style.RESET_ALL}")
             results = crawl_recursive(target, depth=3)
             with open("crawler_output.csv", "w", encoding="utf-8") as f:
                 for url in sorted(results):
                     print(url)
                     f.write(url + "\n")
-            print(f"[+] Crawling completed. {len(results)} URLs saved in crawler_output.csv")
+            print(f"{Fore.WHITE}[+]{Fore.YELLOW} Crawling completed. {len(results)}{Style.RESET_ALL}")
+            print(f"{Fore.WHITE}[+]{Fore.YELLOW} URLs saved in crawler_output.csv{Style.RESET_ALL}")
         elif scelta == "7":
             forced_parameter_injection()
         elif scelta == "0":
