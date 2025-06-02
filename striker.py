@@ -276,13 +276,13 @@ def forced_parameter_injection():
             delay()
             test_resp = requests.get(test_url, headers=get_headers(), timeout=10)
             if test_resp.status_code == 404:
-                 print(f"{Fore.YELLOW}[WRN{Fore.RED} 404{Fore.YELLOW}] {test_url} [{test_resp.status_code}]{Style.RESET_ALL}")
+                 print(f"{Fore.YELLOW}[WRN{Fore.RED} 404{Fore.YELLOW}] {test_url}{Fore.RED} [{test_resp.status_code}]{Style.RESET_ALL}")
                  results.append(("WRN", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
             elif is_vulnerable(test_resp.text, normal_resp.text):
-                 print(Fore.GREEN + f"[VULN] {test_url} [{test_resp.status_code}]")
+                 print(f"{Fore.GREEN}[VULN]{Fore.YELLOW} {test_url}{Fore.GREEN} [{test_resp.status_code}]{Style.RESET_ALL}")
                  results.append(("VULN", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
             else:
-                print(Fore.RED + f"[NOT VULN] {test_url} [{test_resp.status_code}]")
+                print(f"{Fore.RED}[NOT VULN]{Fore.YELLOW} {test_url}{Fore.RED} [{test_resp.status_code}]{Style.RESET_ALL}")
                 results.append(("NOT VULN", test_url, time.strftime('%Y-%m-%d %H:%M:%S')))
         except Exception as e:
             print(f"[!] Error on {test_url}: {e}")
