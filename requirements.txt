@@ -1,5 +1,0 @@
-requests
-argparse
-beautifulsoup4
-colorama
-tqdm
