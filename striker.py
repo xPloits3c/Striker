@@ -9,6 +9,7 @@ import time
 import socket
 import random
 import hashlib
+import logging
 import re
 import os
 import threading
@@ -23,6 +24,9 @@ from colorama import Fore, Style, init
 
 # Initialize colorama
 init(autoreset=True)
+
+# Logging configuration
+logging.basicConfig(filename="striker.log", level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # CONFIGURATION & CONSTANTS
 USER_AGENTS = [
@@ -106,18 +110,21 @@ class CrawledURL:
 # UTILITY FUNCTIONS
 def log_info(message: str):
     print(f"{Fore.CYAN}[*]{Style.RESET_ALL} {message}")
+    logging.info(message)
 
 def log_success(message: str):
     print(f"{Fore.GREEN}[+]{Style.RESET_ALL} {message}")
 
 def log_warning(message: str):
     print(f"{Fore.YELLOW}[!]{Style.RESET_ALL} {message}")
+    logging.warning(message)
 
 def log_error(message: str):
     print(f"{Fore.RED}[!]{Style.RESET_ALL} {message}")
+    logging.error(message)
 
 def log_vulnerable(message: str):
-    print(f"{Fore.RED}[VULNERABLE]{Style.RESET_ALL} {message}")
+    print(f"{Fore.RED}[VULN]{Style.RESET_ALL} {message}")
 
 def get_random_user_agent() -> str:
     return random.choice(USER_AGENTS)
@@ -131,6 +138,9 @@ def is_valid_url(url: str) -> bool:
         return all([result.scheme in ['http', 'https'], result.netloc])
     except:
         return False
+
+def has_parameters(url: str) -> bool:
+    return bool(parse_qs(urlparse(url).query))
 
 def get_domain_from_url(url: str) -> str:
     return urlparse(url).netloc
@@ -159,9 +169,9 @@ def safe_request(url: str, method: str = "GET", params: Dict = None,
     for attempt in range(RETRY_COUNT):
         try:
             if method.upper() == "GET":
-                resp = requests.get(url, params=params, headers=headers, timeout=timeout, verify=False)
+                resp = SESSION.get(url, params=params, headers=headers, timeout=timeout, verify=False)
             else:
-                resp = requests.post(url, data=data, headers=headers, timeout=timeout, verify=False)
+                resp = SESSION.post(url, data=data, headers=headers, timeout=timeout, verify=False)
             return resp
         except requests.exceptions.Timeout:
             log_warning(f"Timeout on {url} (attempt {attempt + 1}/{RETRY_COUNT})")
@@ -175,6 +185,12 @@ def safe_request(url: str, method: str = "GET", params: Dict = None,
 
 # Disable SSL warnings
 requests.packages.urllib3.disable_warnings()
+
+# Global HTTP Session (Connection Pooling)
+SESSION = requests.Session()
+SESSION.headers.update({
+    "User-Agent": get_random_user_agent()
+})
 
 # SQL INJECTION MODULE (ADVANCED)
 class SQLiTester:
@@ -380,8 +396,8 @@ class XSSTester:
                 if resp_xss and xss_payload in resp_xss.text:
                     context = self.detect_context(xss_payload, resp_xss.text)
                     return True, xss_payload, context
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
         return False, None, None
 
     def test_parameter(self, base_url: str, param_name: str) -> List[Vulnerability]:
@@ -467,6 +483,7 @@ class LFITester:
 class AdvancedCrawler:
     def __init__(self, base_url: str, max_depth: int = 3):
         self.base_url = base_url
+        self.max_urls = 2500
         self.max_depth = min(max_depth, 5)
         self.visited: Set[str] = set()
         self.crawled_data: Dict[str, CrawledURL] = {}
@@ -488,8 +505,8 @@ class AdvancedCrawler:
                         path = line.replace('disallow:', '').strip()
                         if path and path != '/':
                             paths.add(urljoin(self.base_url, path))
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
         return paths
 
     def parse_sitemap_xml(self, sitemap_url: str) -> Set[str]:
@@ -502,8 +519,8 @@ class AdvancedCrawler:
                     url = loc.text.strip()
                     if is_same_origin(url, self.base_url):
                         urls.add(url)
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
         return urls
 
     def extract_parameters(self, url: str) -> Dict[str, List[str]]:
@@ -529,8 +546,8 @@ class AdvancedCrawler:
                     if field_data['name']:
                         form_data['fields'].append(field_data)
                 forms.append(form_data)
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
         return forms
 
     def crawl(self) -> Dict[str, CrawledURL]:
@@ -541,6 +558,8 @@ class AdvancedCrawler:
 
     def _crawl_recursive(self, url: str, depth: int):
         if depth > self.max_depth or url in self.visited:
+            return
+        if len(self.visited) >= self.max_urls:
             return
         if not is_same_origin(url, self.base_url):
             return
@@ -562,8 +581,8 @@ class AdvancedCrawler:
                         self._crawl_recursive(full_url, depth + 1)
                 except:
                     continue
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
 
 class WordPressDetector:
     def __init__(self, base_url: str):
@@ -575,8 +594,8 @@ class WordPressDetector:
             resp = safe_request(self.base_url)
             if resp and "wp-content" in resp.text.lower():
                 return True
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
         return False
 
     def detect_version(self) -> Optional[str]:
@@ -587,8 +606,8 @@ class WordPressDetector:
                 match = re.search(r"Version:\s*([\d\.]+)", resp.text, re.IGNORECASE)
                 if match:
                     return match.group(1)
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
 
         # Method 2: meta generator
         try:
@@ -601,8 +620,8 @@ class WordPressDetector:
                 )
                 if match:
                     return match.group(1)
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
 
         return None
 
@@ -617,8 +636,8 @@ class WordPressDetector:
                 )
                 if match:
                     return match.group(1)
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
         return None
 
     def check_theme_advisories(self, theme_name: str) -> List[Dict]:
@@ -654,8 +673,8 @@ class WordPressDetector:
                 if match:
                     plugins.add(match.group(1))
 
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
 
         return sorted(list(plugins))
 
@@ -664,8 +683,8 @@ class WordPressDetector:
             resp = safe_request(f"{self.base_url}{path}")
             if resp and resp.status_code in (200, 401, 403):
                 return True
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
         return False
 
     def analyze_rest_api(self) -> Dict:
@@ -678,8 +697,8 @@ class WordPressDetector:
                 data["site_name"] = json_data.get("name")
                 data["description"] = json_data.get("description")
                 data["namespaces"] = json_data.get("namespaces", [])
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
         return data
 
     def scan(self) -> Dict:
@@ -767,8 +786,8 @@ class WAFDetector:
                 if matches > 0:
                     confidence = min(0.95, matches * 0.3)
                     return waf_name, confidence
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
         return None, 0.0
 
     def detect_from_behavior(self) -> Tuple[Optional[str], float]:
@@ -778,8 +797,8 @@ class WAFDetector:
             resp = safe_request(self.base_url, params=params)
             if resp and resp.status_code == 403:
                 return "Unknown WAF", 0.7
-        except:
-            pass
+        except Exception as e:
+            log_warning(f"Handled exception: {str(e)}")
         return None, 0.0
 
     def scan(self) -> Dict:
@@ -852,7 +871,7 @@ class ReportGenerator:
     </style>
 </head>
 <body>
-    <h1>🔐 STRIKER v2.0 - Security Assessment Report</h1>
+    <h1>🔐 STRIKER v4.2 - Security Assessment Report</h1>
     <p>Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
     <div class="summary">
         {self._get_summary_html()}
@@ -938,6 +957,7 @@ class ReportGenerator:
             log_success(f"  ✓ {Path(f).name}")
         return files
 
+
 # MAIN SCANNER
 class StrikerScanner:
     def __init__(self, target_url: str):
@@ -947,44 +967,73 @@ class StrikerScanner:
         self.vulnerabilities: List[Vulnerability] = []
         self.crawled_data: Dict[str, CrawledURL] = {}
         self.all_findings: Dict = {}
+        self._vuln_signatures: Set[str] = set()
+
+    def _add_vulnerabilities(self, vulns: List[Vulnerability]):
+        for v in vulns:
+            signature = f"{v.target}|{v.parameter}|{v.technique}"
+            if signature not in self._vuln_signatures:
+                self._vuln_signatures.add(signature)
+                self.vulnerabilities.append(v)
 
     def scan_sql_injection(self, urls: List[str]):
         log_info(f"Starting SQL Injection scan ({len(urls)} URLs)")
         tester = SQLiTester()
-        
-        for url in urls[:10]:
+
+        def process_url(url):
             parsed = urlparse(url)
             params = parse_qs(parsed.query)
+            results = []
             for param_name, param_values in params.items():
                 original_value = param_values[0] if param_values else ""
                 vulns = tester.test_parameter(url, param_name, original_value)
-                self.vulnerabilities.extend(vulns)
+                results.extend(vulns)
+            return results
+
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(process_url, url) for url in urls[:20]]
+            for future in futures:
+                self._add_vulnerabilities(future.result())
 
     def scan_xss(self, urls: List[str]):
         log_info(f"Starting XSS scan ({len(urls)} URLs)")
         tester = XSSTester()
-        
-        for url in urls[:10]:
+
+        def process_url(url):
             parsed = urlparse(url)
             params = parse_qs(parsed.query)
+            results = []
             for param_name in params.keys():
                 vulns = tester.test_parameter(url, param_name)
-                self.vulnerabilities.extend(vulns)
+                results.extend(vulns)
+            return results
+
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(process_url, url) for url in urls[:20]]
+            for future in futures:
+                self._add_vulnerabilities(future.result())
 
     def scan_lfi(self, urls: List[str]):
         log_info(f"Starting LFI scan ({len(urls)} URLs)")
         tester = LFITester()
-        
-        for url in urls[:10]:
+
+        def process_url(url):
             parsed = urlparse(url)
             params = parse_qs(parsed.query)
+            results = []
             for param_name in params.keys():
                 vulns = tester.test_parameter(url, param_name)
-                self.vulnerabilities.extend(vulns)
+                results.extend(vulns)
+            return results
+
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [executor.submit(process_url, url) for url in urls[:20]]
+            for future in futures:
+                self._add_vulnerabilities(future.result())
 
     def advanced_scan(self, max_depth: int = 3):
         log_info("=" * 70)
-        log_info("STRIKER v2.0 - ADVANCED VULNERABILITY SCAN")
+        log_info("STRIKER v4.2 - ADVANCED VULNERABILITY SCAN")
         log_info("=" * 70)
         
         crawler = AdvancedCrawler(self.target_url, max_depth=max_depth)
@@ -1018,24 +1067,17 @@ class StrikerScanner:
 def print_banner():
     banner = f"""
 {Fore.RED}
-╔════════════════════════════════════════════════════════════════════════════╗
-║                                                                            ║
-║                    STRIKER v2.0 - Professional Edition                    ║
-║              Advanced Web Vulnerability Scanner & OSINT Tool              ║
-║                                                                            ║
-║  Defensive Security Assessment | Attack Surface Analysis | Hardening      ║
-║  [AUTHORIZED AUDITS & AUTHORIZED TARGETS ONLY]                           ║
-║                                                                            ║
-║  ✓ SQL Injection  ✓ XSS  ✓ LFI  ✓ Advanced Crawling                     ║
-║  ✓ WordPress/Joomla Detection  ✓ WAF Identification  ✓ Professional Reports
-║                                                                            ║
-╚════════════════════════════════════════════════════════════════════════════╝
+    ╔════════════════════════════════════════════════════════════════════════╗
+    ║                                                                        ║
+    ║               STRIKER v4.2 - github.com/xPloits3c/Striker              ║
+    ║                    OSINT Web Vulnerability Scanner                     ║
+    ║                                                                        ║
+    ║       | Defensive Security Assessment | Attack Surface Analysis        ║
+    ╚════════════════════════════════════════════════════════════════════════╝
 {Style.RESET_ALL}
 {Fore.YELLOW}[!] DISCLAIMER:{Style.RESET_ALL}
-    • Unauthorized testing is ILLEGAL
-    • Only scan targets you own or have explicit written permission for
-    • End users are responsible for legal compliance
-    • Tool author assumes NO liability for misuse
+{Fore.GREEN}•{Style.RESET_ALL}{Fore.RED} Attacking targets without prior mutual consent is illegal.{Style.RESET_ALL}
+{Fore.GREEN}•{Style.RESET_ALL}{Fore.RED} It is the end user's responsibility to obey all applicable local, state and federal laws.{Style.RESET_ALL}
 """
     print(banner)
 
@@ -1044,13 +1086,13 @@ def main_menu():
     while True:
         print(f"""
 {Fore.BLUE}┌─ MAIN MENU ─────────────────────────────────────────────┐{Style.RESET_ALL}
-{Fore.WHITE}1) Advanced Scan (Full assessment with crawling)
-2) SQL Injection Testing
-3) XSS Testing
-4) LFI Testing
-5) WordPress Detection
-6) WAF Detection
-7) Subdomain Enumeration (Not implemented)
+{Fore.WHITE}1) Advanced Scan (Param_Crawler)
+2) SQL
+3) XSS
+4) LFI
+5) WP
+6) WAF
+7) DNS (Not implemented)
 0) Exit{Style.RESET_ALL}
 {Fore.BLUE}└─────────────────────────────────────────────────────────┘{Style.RESET_ALL}
 """)
@@ -1079,10 +1121,17 @@ def main_menu():
                 continue
             try:
                 scanner = StrikerScanner(target)
-                crawler = AdvancedCrawler(target, max_depth=4)
-                crawled = crawler.crawl()
-                urls = [u for u, d in crawled.items() if d.parameters]
-                scanner.scan_sql_injection(urls)
+
+                if has_parameters(target):
+                    log_info("Parameter detected, running SQL Injection ..")
+                    scanner.scan_sql_injection([target])
+                else:
+                    log_info("No parameters detected. Starting crawler...")
+                    crawler = AdvancedCrawler(target, max_depth=4)
+                    crawled = crawler.crawl()
+                    urls = [u for u, d in crawled.items() if d.parameters]
+                    scanner.scan_sql_injection(urls)
+
             except Exception as e:
                 log_error(f"SQLi scan error: {str(e)}")
 
@@ -1093,10 +1142,17 @@ def main_menu():
                 continue
             try:
                 scanner = StrikerScanner(target)
-                crawler = AdvancedCrawler(target, max_depth=2)
-                crawled = crawler.crawl()
-                urls = [u for u, d in crawled.items() if d.parameters]
-                scanner.scan_xss(urls)
+
+                if has_parameters(target):
+                    log_info("Direct parameter detected. Running XSS test directly...")
+                    scanner.scan_xss([target])
+                else:
+                    log_info("No parameters detected. Starting crawler...")
+                    crawler = AdvancedCrawler(target, max_depth=2)
+                    crawled = crawler.crawl()
+                    urls = [u for u, d in crawled.items() if d.parameters]
+                    scanner.scan_xss(urls)
+
             except Exception as e:
                 log_error(f"XSS scan error: {str(e)}")
 
@@ -1107,10 +1163,17 @@ def main_menu():
                 continue
             try:
                 scanner = StrikerScanner(target)
-                crawler = AdvancedCrawler(target, max_depth=2)
-                crawled = crawler.crawl()
-                urls = [u for u, d in crawled.items() if d.parameters]
-                scanner.scan_lfi(urls)
+
+                if has_parameters(target):
+                    log_info("Direct parameter detected. Running LFI test directly...")
+                    scanner.scan_lfi([target])
+                else:
+                    log_info("No parameters detected. Starting crawler...")
+                    crawler = AdvancedCrawler(target, max_depth=2)
+                    crawled = crawler.crawl()
+                    urls = [u for u, d in crawled.items() if d.parameters]
+                    scanner.scan_lfi(urls)
+
             except Exception as e:
                 log_error(f"LFI scan error: {str(e)}")
 
