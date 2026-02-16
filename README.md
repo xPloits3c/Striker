@@ -15,11 +15,11 @@
   <img src="https://img.shields.io/github/license/xPloits3c/GPTScanner?style=flat-square" />
   <img src="https://img.shields.io/github/stars/xPloits3c/GPTScanner?style=social" />
   <img src="https://img.shields.io/github/release/xPloits3c/GPTScanner" />
-  ![Stars](https://img.shields.io/github/stars/xPloits3c/Striker?style=flat)
-  ![Repo views](https://komarev.com/ghpvc/?username=xPloits3c&label=Striker%20views&color=blue)
 </p>
 
 ---
+  ![Stars](https://img.shields.io/github/stars/xPloits3c/Striker?style=flat)
+  ![Repo views](https://komarev.com/ghpvc/?username=xPloits3c&label=Striker%20views&color=blue)
 
 **Striker is an advanced tool written in Python to identify any vulnerability.**
 
