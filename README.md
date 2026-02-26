@@ -19,7 +19,6 @@
 
 ---
   ![Stars](https://img.shields.io/github/stars/xPloits3c/Striker?style=flat)
-  ![Repo views](https://komarev.com/ghpvc/?username=xPloits3c&label=Striker%20views&color=blue)
 
 **Striker is an advanced tool written in Python to identify any vulnerability.**
 
