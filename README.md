@@ -18,7 +18,6 @@
 </p>
 
 ---
-  ![Stars](https://img.shields.io/github/stars/xPloits3c/Striker?style=flat)
 
 **Striker is an advanced tool written in Python to identify any vulnerability.**
 
