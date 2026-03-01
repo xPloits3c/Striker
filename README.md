@@ -60,7 +60,7 @@ The tool compares the normal response with the modified one. If:
 
 **👨‍💻 Author**
 -----------
-Developed with passion by: **`xPloits3c`** with: **`Open-Ai`**
+Developed by: **`xPloits3c`**
 
 License: MIT
-Contact: whitehat.report@onionmail.org
+Contact: **`whitehat.report@onionmail.org`**
