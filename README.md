@@ -68,8 +68,6 @@
 - `3) Payloads file (optional, default send): sqli.payloads.txt`
 - `4) Number of threads (default 5): 5`
 
-![image](https://github.com/user-attachments/assets/3488993c-b0c2-4d6f-b8f9-80a87e8783e8)
-
 **📝 CSV Output**
 -------------
 Each query is automatically saved in Format:`.csv`
