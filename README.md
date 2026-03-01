@@ -26,8 +26,7 @@
 + Cross Site Scripting (XSS)
 + Local File Inclusion (LFI)
 
-![image](https://github.com/user-attachments/assets/a0b14da1-29be-48b7-83bf-53a323d61347)
-
+<img width="1127" height="722" alt="striker_menu" src="https://github.com/user-attachments/assets/17fb0f1e-d1d9-4d78-8c36-06f3830d72fe" />
 
 **✨ Key Features**
 --------------------------
