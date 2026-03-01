@@ -27,30 +27,29 @@
 **⚙️ Requirements**
 ------------
 - Python 3.7+
-- Required modules:
 - `requests`
 - `beautifulsoup4`
 - `tqdm`
 - `colorama`
 
 ## ⚙️ Installation
-+ git clone https://github.com/xPloits3c/Striker.git
-+ cd Striker
-+ pip install -r requirements.txt
-+ python3 striker.py
++ `git clone https://github.com/xPloits3c/Striker.git`
++ `cd Striker`
++ `python -m venv striker_env`
++ `source striker_env/bin/activate`
++ `pip install -r requirements.txt`
++ `python striker.py`
 
 **▶️ Example of use**
 ----------------
-- `1) python3 striker.py`
-- `2) Custom scan.`
-- `3) Payloads file (optional, default send): sqli.payloads.txt`
-- `4) Number of threads (default 5): 5`
+- 1) `python3 striker.py`
+- 2) `Custom scan.`
+- 3) Payloads file (optional, default send): `sqli.payloads.txt`
+- 4) Number of threads (default 5): `5`
 
 **📝 CSV Output**
 -------------
 Each query is automatically saved in Format:`.csv`
-
-![image](https://github.com/user-attachments/assets/684bfd39-45a5-4662-9505-682718c13699)
 
 **🧠 Logic**
 ---------
