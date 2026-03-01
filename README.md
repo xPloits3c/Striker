@@ -42,10 +42,10 @@
 
 **▶️ Example of use**
 ----------------
-- 1) `python3 striker.py`
-- 2) `Custom scan.`
-- 3) Payloads file (optional, default send): `sqli.payloads.txt`
-- 4) Number of threads (default 5): `5`
+-  `python3 striker.py`
+-  `Custom scan.`
+-  Payloads file (optional, default send): `sqli.payloads.txt`
+-  Number of threads (default 5): `5`
 
 **📝 CSV Output**
 -------------
