@@ -22,29 +22,7 @@
 **Striker is an advanced tool written in Python to identify any vulnerability.**
 
 **Includes intelligent scanning, custom payloads, advanced terminal interface and results export.**
-+ SQL Injection (SQLi)
-+ Cross Site Scripting (XSS)
-+ Local File Inclusion (LFI)
-
 <img width="1127" height="722" alt="striker_menu" src="https://github.com/user-attachments/assets/17fb0f1e-d1d9-4d78-8c36-06f3830d72fe" />
-
-**✨ Key Features**
---------------------------
-✔️ Crawler Test vuln.
-
-✔️ SQLi-XSS-LFI testing with custom or default payloads.
-
-✔️ Web Application Firewall (WAF)
-
-✔️ Reverse IP
-
-✔️ Real-time highlighting:
-
-✔️ Progress bar (tqdm)
-
-✔️ Automatic results export to .CSV
-
-✔️ Multi-threading for speed
 
 **⚙️ Requirements**
 ------------
