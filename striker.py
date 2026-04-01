@@ -554,17 +554,9 @@ class AdvancedCrawler:
 
 
 # ──────────────────────────────────────────────────────────────
-# FULL LINK CRAWLER  (NEW – option 8)
+# FULL LINK CRAWLER  (option 8)
 # ──────────────────────────────────────────────────────────────
 class FullLinkCrawler:
-    """
-    Crawls the target site and collects EVERY link it can find:
-    internal pages, external links, assets (JS/CSS/img),
-    e-mail addresses, and forms.
-    Exports results to a Matrix-style HTML report.
-    """
-
-    # File extensions considered "assets"
     ASSET_EXTS = {'.js', '.css', '.png', '.jpg', '.jpeg', '.gif',
                   '.svg', '.ico', '.woff', '.woff2', '.ttf', '.eot',
                   '.mp4', '.mp3', '.pdf', '.zip', '.tar', '.gz'}
@@ -579,7 +571,6 @@ class FullLinkCrawler:
         self.emails:    Set[str]          = set()
         self._lock      = threading.Lock()
 
-    # ── helpers ──────────────────────────────────────────────
     def _classify(self, url: str) -> str:
         if url.startswith("mailto:"):
             return "email"
@@ -591,7 +582,6 @@ class FullLinkCrawler:
         return "external"
 
     def _normalise(self, raw: str, page_url: str) -> Optional[str]:
-        """Resolve relative URLs; discard fragments, javascript: etc."""
         try:
             raw = raw.strip()
             if not raw or raw.startswith(('javascript:', '#', 'data:', 'void')):
@@ -599,13 +589,11 @@ class FullLinkCrawler:
             if raw.startswith("mailto:"):
                 return raw
             full = urljoin(page_url, raw)
-            # strip fragment
             parsed = urlparse(full)._replace(fragment='')
             return parsed.geturl()
         except Exception:
             return None
 
-    # ── core crawl ───────────────────────────────────────────
     def crawl(self) -> List[LinkEntry]:
         log_info(f"[FullLinkCrawler] Starting – depth {self.max_depth}, limit {self.max_urls}")
         self._crawl_page(self.base_url, source="SEED", depth=0)
@@ -628,11 +616,9 @@ class FullLinkCrawler:
 
         content_type = resp.headers.get("Content-Type", "")
         if "html" not in content_type:
-            return  # skip binary / JSON / etc.
+            return
 
         soup = BeautifulSoup(resp.text, 'html.parser')
-
-        # ── collect all link-like elements ──────────────────
         new_internal: List[str] = []
 
         def _add(raw: str, link_type_override: str = None):
@@ -652,7 +638,6 @@ class FullLinkCrawler:
                                   link_type=ltype, depth=depth,
                                   has_params=has_parameters(norm))
             with self._lock:
-                # avoid exact duplicate entries
                 existing_urls = {l.url for l in self.links}
                 if norm not in existing_urls:
                     self.links.append(entry)
@@ -660,37 +645,24 @@ class FullLinkCrawler:
                and self._classify(norm) == "internal":
                 new_internal.append(norm)
 
-        # <a href>
         for tag in soup.find_all('a', href=True):
             _add(tag['href'])
-
-        # <script src>
         for tag in soup.find_all('script', src=True):
             _add(tag['src'], "asset")
-
-        # <link href> (CSS, favicons…)
         for tag in soup.find_all('link', href=True):
             _add(tag['href'], "asset")
-
-        # <img src>
         for tag in soup.find_all('img', src=True):
             _add(tag['src'], "asset")
-
-        # <form action>
         for tag in soup.find_all('form', action=True):
             _add(tag['action'], "form")
-
-        # inline mailto: patterns in text
         for match in re.finditer(r'[\w.+-]+@[\w-]+\.[\w.]+', resp.text):
             e = match.group(0)
             with self._lock:
                 self.emails.add(e)
 
-        # ── recurse into internal pages ──────────────────────
         for next_url in new_internal:
             self._crawl_page(next_url, source=url, depth=depth + 1)
 
-    # ── Matrix HTML report ───────────────────────────────────
     def generate_matrix_html(self, output_dir: str = "./reports") -> str:
         Path(output_dir).mkdir(exist_ok=True)
         ts       = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -721,155 +693,60 @@ class FullLinkCrawler:
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>STRIKER – Link Map</title>
   <style>
-    /* ── Matrix palette ── */
     :root {{
-      --bg:      #0a0a0a;
-      --bg2:     #111;
-      --green:   #00ff41;
-      --dkgreen: #00b32c;
-      --dim:     #1a3a1a;
-      --border:  #1e5e1e;
-      --text:    #b8ffb8;
-      --header:  #003d00;
-      --red:     #ff3c3c;
-      --yellow:  #ffd700;
-      --cyan:    #00e5ff;
+      --bg:#0a0a0a;--bg2:#111;--green:#00ff41;--dkgreen:#00b32c;
+      --dim:#1a3a1a;--border:#1e5e1e;--text:#b8ffb8;--header:#003d00;
+      --red:#ff3c3c;--yellow:#ffd700;--cyan:#00e5ff;
     }}
-    * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-    body {{
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 13px;
-    }}
-
-    /* Matrix rain canvas */
-    #matrix-canvas {{
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: 0; opacity: 0.07; pointer-events: none;
-    }}
-
-    .wrapper {{ position: relative; z-index: 1; padding: 20px; max-width: 1400px; margin: auto; }}
-
-    /* ── Header ── */
-    .header {{
-      text-align: center; padding: 30px 0 10px;
-      border-bottom: 2px solid var(--border);
-      margin-bottom: 20px;
-    }}
-    .header pre {{
-      color: var(--green); font-size: 11px; line-height: 1.2;
-      text-shadow: 0 0 8px var(--green);
-    }}
-    .header .sub {{ color: var(--dkgreen); margin-top: 8px; font-size: 12px; }}
-    .header .meta {{ color: #555; margin-top: 4px; font-size: 11px; }}
-
-    /* ── Stats bar ── */
-    .stats {{
-      display: flex; flex-wrap: wrap; gap: 12px;
-      margin-bottom: 20px;
-    }}
-    .stat-box {{
-      flex: 1 1 130px;
-      background: var(--dim); border: 1px solid var(--border);
-      border-radius: 4px; padding: 12px;
-      text-align: center;
-    }}
-    .stat-box .num {{ font-size: 26px; color: var(--green); font-weight: bold; }}
-    .stat-box .lbl {{ font-size: 10px; color: var(--dkgreen); text-transform: uppercase; }}
-
-    /* ── Tabs ── */
-    .tabs {{ display: flex; gap: 4px; margin-bottom: 0; flex-wrap: wrap; }}
-    .tab-btn {{
-      background: var(--header); border: 1px solid var(--border);
-      border-bottom: none; color: var(--dkgreen);
-      padding: 8px 16px; cursor: pointer; border-radius: 4px 4px 0 0;
-      font-family: inherit; font-size: 12px; transition: all .2s;
-    }}
-    .tab-btn:hover, .tab-btn.active {{
-      background: var(--dim); color: var(--green);
-      text-shadow: 0 0 6px var(--green);
-    }}
-    .tab-content {{ display: none; }}
-    .tab-content.active {{ display: block; }}
-
-    /* ── Table ── */
-    .section {{
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 0 4px 4px 4px; padding: 16px;
-      margin-bottom: 20px;
-    }}
-    table {{ width: 100%; border-collapse: collapse; }}
-    th {{
-      background: var(--header); color: var(--green);
-      padding: 8px 12px; text-align: left;
-      border-bottom: 1px solid var(--border);
-      text-transform: uppercase; font-size: 11px; letter-spacing: .05em;
-    }}
-    td {{
-      padding: 6px 12px; border-bottom: 1px solid #161616;
-      vertical-align: top; word-break: break-all;
-    }}
-    tr:hover td {{ background: var(--dim); }}
-    a {{ color: var(--green); text-decoration: none; }}
-    a:hover {{ text-decoration: underline; color: #fff; }}
-    .src {{ color: #3a7a3a; font-size: 11px; }}
-    .depth {{ color: #555; font-size: 11px; white-space: nowrap; }}
-    .empty {{ color: #333; text-align: center; padding: 20px; }}
-    .badge {{
-      display: inline-block; font-size: 9px;
-      padding: 1px 5px; border-radius: 3px;
-      margin-left: 6px; vertical-align: middle;
-    }}
-    .param {{ background: #1a3a00; color: var(--green); border: 1px solid var(--dkgreen); }}
-
-    /* email table */
-    .email-list {{ display: flex; flex-wrap: wrap; gap: 8px; }}
-    .email-chip {{
-      background: var(--dim); border: 1px solid var(--border);
-      border-radius: 3px; padding: 4px 10px;
-      color: var(--cyan); font-size: 12px;
-    }}
-
-    /* search */
-    .search-bar {{
-      width: 100%; margin-bottom: 12px;
-      background: #111; border: 1px solid var(--border);
-      color: var(--green); padding: 8px 12px;
-      font-family: inherit; font-size: 13px; border-radius: 4px;
-      outline: none;
-    }}
-    .search-bar::placeholder {{ color: #2a5a2a; }}
-    .search-bar:focus {{ border-color: var(--green); box-shadow: 0 0 6px #00ff4140; }}
-
-    /* footer */
-    .footer {{
-      text-align: center; color: #2a4a2a; padding: 20px 0;
-      font-size: 11px; border-top: 1px solid var(--border);
-    }}
+    * {{ box-sizing:border-box;margin:0;padding:0; }}
+    body {{ background:var(--bg);color:var(--text);font-family:'Courier New',monospace;font-size:13px; }}
+    #matrix-canvas {{ position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:.07;pointer-events:none; }}
+    .wrapper {{ position:relative;z-index:1;padding:20px;max-width:1400px;margin:auto; }}
+    .header {{ text-align:center;padding:30px 0 10px;border-bottom:2px solid var(--border);margin-bottom:20px; }}
+    .header pre {{ color:var(--green);font-size:11px;text-shadow:0 0 8px var(--green); }}
+    .header .sub {{ color:var(--dkgreen);margin-top:8px;font-size:12px; }}
+    .header .meta {{ color:#555;margin-top:4px;font-size:11px; }}
+    .stats {{ display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px; }}
+    .stat-box {{ flex:1 1 130px;background:var(--dim);border:1px solid var(--border);border-radius:4px;padding:12px;text-align:center; }}
+    .stat-box .num {{ font-size:26px;color:var(--green);font-weight:bold; }}
+    .stat-box .lbl {{ font-size:10px;color:var(--dkgreen);text-transform:uppercase; }}
+    .tabs {{ display:flex;gap:4px;margin-bottom:0;flex-wrap:wrap; }}
+    .tab-btn {{ background:var(--header);border:1px solid var(--border);border-bottom:none;color:var(--dkgreen);
+                padding:8px 16px;cursor:pointer;border-radius:4px 4px 0 0;font-family:inherit;font-size:12px; }}
+    .tab-btn:hover,.tab-btn.active {{ background:var(--dim);color:var(--green);text-shadow:0 0 6px var(--green); }}
+    .tab-content {{ display:none; }}
+    .tab-content.active {{ display:block; }}
+    .section {{ background:var(--bg2);border:1px solid var(--border);border-radius:0 4px 4px 4px;padding:16px;margin-bottom:20px; }}
+    table {{ width:100%;border-collapse:collapse; }}
+    th {{ background:var(--header);color:var(--green);padding:8px 12px;text-align:left;
+          border-bottom:1px solid var(--border);text-transform:uppercase;font-size:11px; }}
+    td {{ padding:6px 12px;border-bottom:1px solid #161616;vertical-align:top;word-break:break-all; }}
+    tr:hover td {{ background:var(--dim); }}
+    a {{ color:var(--green);text-decoration:none; }}
+    a:hover {{ text-decoration:underline;color:#fff; }}
+    .src {{ color:#3a7a3a;font-size:11px; }}
+    .depth {{ color:#555;font-size:11px;white-space:nowrap; }}
+    .empty {{ color:#333;text-align:center;padding:20px; }}
+    .badge {{ display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;margin-left:6px;vertical-align:middle; }}
+    .param {{ background:#1a3a00;color:var(--green);border:1px solid var(--dkgreen); }}
+    .email-list {{ display:flex;flex-wrap:wrap;gap:8px; }}
+    .email-chip {{ background:var(--dim);border:1px solid var(--border);border-radius:3px;padding:4px 10px;color:var(--cyan);font-size:12px; }}
+    .search-bar {{ width:100%;margin-bottom:12px;background:#111;border:1px solid var(--border);
+                   color:var(--green);padding:8px 12px;font-family:inherit;font-size:13px;border-radius:4px;outline:none; }}
+    .search-bar::placeholder {{ color:#2a5a2a; }}
+    .footer {{ text-align:center;color:#2a4a2a;padding:20px 0;font-size:11px;border-top:1px solid var(--border); }}
   </style>
 </head>
 <body>
-
 <canvas id="matrix-canvas"></canvas>
-
 <div class="wrapper">
-
-  <!-- HEADER -->
   <div class="header">
     <pre>STRIKER v4.3 - Link Surface Map</pre>
     <div class="sub">Link Surface Map — {self.base_url}</div>
-    <div class="meta">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} &nbsp;|&nbsp;
-      Crawl depth: {self.max_depth} &nbsp;|&nbsp;
-      Pages visited: {len(self.visited)}
-    </div>
+    <div class="meta">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Depth: {self.max_depth} | Pages: {len(self.visited)}</div>
   </div>
-
-  <!-- STATS -->
   <div class="stats">
     <div class="stat-box"><div class="num">{len(self.links)}</div><div class="lbl">Total Links</div></div>
     <div class="stat-box"><div class="num">{len(internal)}</div><div class="lbl">Internal</div></div>
@@ -880,207 +757,119 @@ class FullLinkCrawler:
     <div class="stat-box"><div class="num">{len(param_urls)}</div><div class="lbl">With Params</div></div>
     <div class="stat-box"><div class="num">{len(self.visited)}</div><div class="lbl">Pages Visited</div></div>
   </div>
-
-  <!-- TABS -->
   <div class="tabs">
-    <button class="tab-btn active" onclick="showTab('internal')">Internal ({len(internal)})</button>
-    <button class="tab-btn" onclick="showTab('external')">External ({len(external)})</button>
-    <button class="tab-btn" onclick="showTab('assets')">Assets ({len(assets)})</button>
-    <button class="tab-btn" onclick="showTab('forms')">Forms ({len(forms)})</button>
-    <button class="tab-btn" onclick="showTab('emails')">Emails ({len(emails)})</button>
-    <button class="tab-btn" onclick="showTab('params')">With Params ({len(param_urls)})</button>
+    <button class="tab-btn active" onclick="showTab('internal',this)">Internal ({len(internal)})</button>
+    <button class="tab-btn" onclick="showTab('external',this)">External ({len(external)})</button>
+    <button class="tab-btn" onclick="showTab('assets',this)">Assets ({len(assets)})</button>
+    <button class="tab-btn" onclick="showTab('forms',this)">Forms ({len(forms)})</button>
+    <button class="tab-btn" onclick="showTab('emails',this)">Emails ({len(emails)})</button>
+    <button class="tab-btn" onclick="showTab('params',this)">With Params ({len(param_urls)})</button>
   </div>
-
-  <!-- TAB: INTERNAL -->
-  <div id="tab-internal" class="tab-content active">
-    <div class="section">
-      <input class="search-bar" placeholder="Filter internal links..." oninput="filterTable('tbl-internal', this.value)">
-      <table id="tbl-internal">
-        <thead><tr><th>URL</th><th>Depth</th><th>Source Page</th></tr></thead>
-        <tbody>{rows(internal)}</tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- TAB: EXTERNAL -->
-  <div id="tab-external" class="tab-content">
-    <div class="section">
-      <input class="search-bar" placeholder="Filter external links..." oninput="filterTable('tbl-external', this.value)">
-      <table id="tbl-external">
-        <thead><tr><th>URL</th><th>Depth</th><th>Source Page</th></tr></thead>
-        <tbody>{rows(external)}</tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- TAB: ASSETS -->
-  <div id="tab-assets" class="tab-content">
-    <div class="section">
-      <input class="search-bar" placeholder="Filter assets..." oninput="filterTable('tbl-assets', this.value)">
-      <table id="tbl-assets">
-        <thead><tr><th>URL</th><th>Depth</th><th>Source Page</th></tr></thead>
-        <tbody>{rows(assets)}</tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- TAB: FORMS -->
-  <div id="tab-forms" class="tab-content">
-    <div class="section">
-      <table id="tbl-forms">
-        <thead><tr><th>Form Action URL</th><th>Depth</th><th>Source Page</th></tr></thead>
-        <tbody>{rows(forms)}</tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- TAB: EMAILS -->
-  <div id="tab-emails" class="tab-content">
-    <div class="section">
-      <div class="email-list">
-        {"".join(f'<div class="email-chip">{e}</div>' for e in emails) or '<p class="empty">No emails found.</p>'}
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB: WITH PARAMS -->
-  <div id="tab-params" class="tab-content">
-    <div class="section">
-      <input class="search-bar" placeholder="Filter parameterised URLs..." oninput="filterTable('tbl-params', this.value)">
-      <table id="tbl-params">
-        <thead><tr><th>URL</th><th>Depth</th><th>Source Page</th></tr></thead>
-        <tbody>{rows(param_urls)}</tbody>
-      </table>
-    </div>
-  </div>
-
+  <div id="tab-internal" class="tab-content active"><div class="section">
+    <input class="search-bar" placeholder="Filter internal links..." oninput="filterTable('tbl-internal',this.value)">
+    <table id="tbl-internal"><thead><tr><th>URL</th><th>Depth</th><th>Source Page</th></tr></thead><tbody>{rows(internal)}</tbody></table>
+  </div></div>
+  <div id="tab-external" class="tab-content"><div class="section">
+    <input class="search-bar" placeholder="Filter external links..." oninput="filterTable('tbl-external',this.value)">
+    <table id="tbl-external"><thead><tr><th>URL</th><th>Depth</th><th>Source Page</th></tr></thead><tbody>{rows(external)}</tbody></table>
+  </div></div>
+  <div id="tab-assets" class="tab-content"><div class="section">
+    <input class="search-bar" placeholder="Filter assets..." oninput="filterTable('tbl-assets',this.value)">
+    <table id="tbl-assets"><thead><tr><th>URL</th><th>Depth</th><th>Source Page</th></tr></thead><tbody>{rows(assets)}</tbody></table>
+  </div></div>
+  <div id="tab-forms" class="tab-content"><div class="section">
+    <table id="tbl-forms"><thead><tr><th>Form Action URL</th><th>Depth</th><th>Source Page</th></tr></thead><tbody>{rows(forms)}</tbody></table>
+  </div></div>
+  <div id="tab-emails" class="tab-content"><div class="section">
+    <div class="email-list">{"".join(f'<div class="email-chip">{e}</div>' for e in emails) or '<p class="empty">No emails found.</p>'}</div>
+  </div></div>
+  <div id="tab-params" class="tab-content"><div class="section">
+    <input class="search-bar" placeholder="Filter parameterised URLs..." oninput="filterTable('tbl-params',this.value)">
+    <table id="tbl-params"><thead><tr><th>URL</th><th>Depth</th><th>Source Page</th></tr></thead><tbody>{rows(param_urls)}</tbody></table>
+  </div></div>
   <div class="footer">STRIKER v4.3 | Defensive OSINT Surface Analysis | {datetime.now().year}</div>
 </div>
-
 <script>
-/* ── Matrix rain ── */
-(function() {{
-  const canvas = document.getElementById('matrix-canvas');
-  const ctx    = canvas.getContext('2d');
-  let W, H, cols, drops;
-  const CHARS  = '01アイウエオカキクケコサシスセソタチツテトナニヌネノ';
-  function init() {{
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-    const fs = 14;
-    cols  = Math.floor(W / fs);
-    drops = Array(cols).fill(1);
-  }}
-  function draw() {{
-    ctx.fillStyle = 'rgba(0,0,0,0.05)';
-    ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = '#00ff41';
-    ctx.font      = '14px Courier New';
-    drops.forEach((y, i) => {{
-      const ch = CHARS[Math.floor(Math.random() * CHARS.length)];
-      ctx.fillText(ch, i * 14, y * 14);
-      if (y * 14 > H && Math.random() > 0.975) drops[i] = 0;
-      drops[i]++;
-    }});
-  }}
-  init();
-  window.addEventListener('resize', init);
-  setInterval(draw, 35);
+(function(){{
+  const canvas=document.getElementById('matrix-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,cols,drops;
+  const CHARS='01アイウエオカキクケコABCDEF0123456789';
+  function init(){{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;cols=Math.floor(W/14);drops=Array(cols).fill(1);}}
+  function draw(){{ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#00ff41';ctx.font='14px Courier New';
+    drops.forEach((y,i)=>{{const ch=CHARS[Math.floor(Math.random()*CHARS.length)];ctx.fillText(ch,i*14,y*14);
+      if(y*14>H&&Math.random()>.975)drops[i]=0;drops[i]++;}});}}
+  init();window.addEventListener('resize',init);setInterval(draw,35);
 }})();
-
-/* ── Tabs ── */
-function showTab(name) {{
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
+function showTab(name,btn){{
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
 }}
-
-/* ── Search / filter ── */
-function filterTable(tableId, query) {{
-  const q    = query.toLowerCase();
-  const rows = document.getElementById(tableId).querySelectorAll('tbody tr');
-  rows.forEach(row => {{
-    row.style.display = row.innerText.toLowerCase().includes(q) ? '' : 'none';
+function filterTable(tableId,query){{
+  const q=query.toLowerCase();
+  document.getElementById(tableId).querySelectorAll('tbody tr').forEach(row=>{{
+    row.style.display=row.innerText.toLowerCase().includes(q)?'':'none';
   }});
 }}
 </script>
-</body>
-</html>"""
+</body></html>"""
 
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(html)
-
         log_success(f"Matrix HTML report saved → {filename}")
         return str(filename)
 
 
 # ──────────────────────────────────────────────────────────────
-# DNS SCANNER  (NEW – option 7)
+# DNS SCANNER  (option 7)
 # ──────────────────────────────────────────────────────────────
 class DNSScanner:
-    """
-    Passive / active DNS surface analysis:
-      • A / AAAA / CNAME / MX / NS / TXT / SOA record lookup
-      • Subdomain enumeration via wordlist + socket resolution
-      • Zone-transfer attempt (AXFR) – passive probe only
-      • Outputs a Matrix-style HTML report
-    """
-
     WORDLIST = [
-        "www", "mail", "smtp", "pop", "pop3", "imap", "ftp", "sftp",
-        "ns", "ns1", "ns2", "ns3", "dns", "dns1", "dns2",
-        "api", "api2", "rest", "graphql", "gateway",
-        "admin", "panel", "cpanel", "whm", "plesk",
-        "dev", "development", "staging", "stage", "test", "uat", "qa",
-        "demo", "sandbox", "preview", "beta", "alpha",
-        "old", "new", "legacy", "backup", "bak",
-        "blog", "news", "forum", "shop", "store", "ecommerce",
-        "cdn", "media", "static", "assets", "img", "images",
-        "vpn", "remote", "rdp", "ssh", "git", "svn",
-        "jira", "confluence", "redmine", "jenkins", "ci", "cd",
-        "monitor", "status", "health", "metrics", "grafana", "kibana",
-        "mail2", "webmail", "autodiscover", "exchange",
-        "portal", "intranet", "extranet", "app", "apps", "mobile",
-        "crm", "erp", "helpdesk", "support", "tickets",
-        "secure", "login", "auth", "sso", "oauth",
-        "db", "database", "mysql", "mongo", "redis", "elastic",
-        "proxy", "lb", "loadbalancer", "ha", "cluster",
-        "m", "wap", "mobile", "pda",
+        "www","mail","smtp","pop","pop3","imap","ftp","sftp",
+        "ns","ns1","ns2","ns3","dns","dns1","dns2",
+        "api","api2","rest","graphql","gateway",
+        "admin","panel","cpanel","whm","plesk",
+        "dev","development","staging","stage","test","uat","qa",
+        "demo","sandbox","preview","beta","alpha",
+        "old","new","legacy","backup","bak",
+        "blog","news","forum","shop","store","ecommerce",
+        "cdn","media","static","assets","img","images",
+        "vpn","remote","rdp","ssh","git","svn",
+        "jira","confluence","redmine","jenkins","ci","cd",
+        "monitor","status","health","metrics","grafana","kibana",
+        "mail2","webmail","autodiscover","exchange",
+        "portal","intranet","extranet","app","apps","mobile",
+        "crm","erp","helpdesk","support","tickets",
+        "secure","login","auth","sso","oauth",
+        "db","database","mysql","mongo","redis","elastic",
+        "proxy","lb","loadbalancer","ha","cluster",
+        "m","wap","pda",
     ]
-
-    RECORD_TYPES = ["A", "AAAA", "CNAME", "MX", "NS", "TXT", "SOA"]
+    RECORD_TYPES = ["A","AAAA","CNAME","MX","NS","TXT","SOA"]
 
     def __init__(self, domain: str):
-        # Accept full URL or bare domain
         if domain.startswith("http"):
             domain = get_domain_from_url(domain)
         self.domain    = domain.strip().lower()
         self.found_subs: List[Dict]  = []
         self.dns_records: Dict       = {}
 
-    # ── DNS record lookup via system dig / nslookup ──────────
     def _dig(self, domain: str, rtype: str) -> List[str]:
-        """Try dig, then nslookup, then socket for A."""
-        # Try dig
         try:
-            result = subprocess.run(
-                ["dig", "+short", rtype, domain],
-                capture_output=True, text=True, timeout=5)
+            result = subprocess.run(["dig","+short",rtype,domain],
+                                    capture_output=True,text=True,timeout=5)
             if result.returncode == 0 and result.stdout.strip():
                 return [l.strip() for l in result.stdout.strip().splitlines() if l.strip()]
         except (FileNotFoundError, subprocess.TimeoutExpired):
             pass
-
-        # Try nslookup
         try:
-            result = subprocess.run(
-                ["nslookup", "-type=" + rtype, domain],
-                capture_output=True, text=True, timeout=5)
+            result = subprocess.run(["nslookup","-type="+rtype,domain],
+                                    capture_output=True,text=True,timeout=5)
             if result.returncode == 0:
-                lines = result.stdout.strip().splitlines()
                 answers = []
-                for line in lines:
+                for line in result.stdout.strip().splitlines():
                     line = line.strip()
                     if line and not line.startswith("Server") and \
                        not line.startswith("Address") and "NXDOMAIN" not in line:
@@ -1089,16 +878,13 @@ class DNSScanner:
                     return answers
         except (FileNotFoundError, subprocess.TimeoutExpired):
             pass
-
-        # Fallback: socket only supports A/AAAA
-        if rtype in ("A", "AAAA"):
+        if rtype in ("A","AAAA"):
             try:
-                family = socket.AF_INET if rtype == "A" else socket.AF_INET6
-                infos  = socket.getaddrinfo(domain, None, family)
+                family = socket.AF_INET if rtype=="A" else socket.AF_INET6
+                infos  = socket.getaddrinfo(domain,None,family)
                 return list({info[4][0] for info in infos})
             except Exception:
                 pass
-
         return []
 
     def get_dns_records(self) -> Dict:
@@ -1108,19 +894,17 @@ class DNSScanner:
             data = self._dig(self.domain, rtype)
             if data:
                 records[rtype] = data
-                log_success(f"  {rtype:6s} → {', '.join(data[:3])}"
-                            f"{'…' if len(data) > 3 else ''}")
+                log_success(f"  {rtype:6s} → {', '.join(data[:3])}{'…' if len(data)>3 else ''}")
             else:
                 log_info(f"  {rtype:6s} → (no record)")
         self.dns_records = records
         return records
 
-    # ── Subdomain enumeration ─────────────────────────────────
     def _resolve_sub(self, sub: str) -> Optional[Dict]:
         fqdn = f"{sub}.{self.domain}"
-        ips  = self._dig(fqdn, "A")
+        ips  = self._dig(fqdn,"A")
         if ips:
-            return {"subdomain": fqdn, "ips": ips, "cname": self._dig(fqdn, "CNAME")}
+            return {"subdomain":fqdn,"ips":ips,"cname":self._dig(fqdn,"CNAME")}
         return None
 
     def enumerate_subdomains(self, wordlist: Optional[List[str]] = None) -> List[Dict]:
@@ -1128,34 +912,27 @@ class DNSScanner:
         log_info(f"[DNS] Enumerating {len(wl)} subdomains for {self.domain}…")
         found = []
         with ThreadPoolExecutor(max_workers=30) as executor:
-            futures = {executor.submit(self._resolve_sub, sub): sub for sub in wl}
+            futures = {executor.submit(self._resolve_sub,sub):sub for sub in wl}
             for future in as_completed(futures):
                 result = future.result()
                 if result:
                     found.append(result)
-                    ips_str = ', '.join(result['ips'])
-                    log_success(f"  FOUND  {result['subdomain']:45s} → {ips_str}")
+                    log_success(f"  FOUND  {result['subdomain']:45s} → {', '.join(result['ips'])}")
         self.found_subs = sorted(found, key=lambda x: x['subdomain'])
         log_success(f"[DNS] {len(found)} subdomains discovered")
         return self.found_subs
 
-    # ── Zone-transfer probe ───────────────────────────────────
     def try_zone_transfer(self) -> List[str]:
-        """
-        Attempt AXFR on each NS. Logs result – does NOT parse/exploit.
-        Returns a list of NS servers that allowed the transfer (should be empty).
-        """
-        ns_servers = self.dns_records.get("NS", [])
+        ns_servers = self.dns_records.get("NS",[])
         if not ns_servers:
-            ns_servers = self._dig(self.domain, "NS")
+            ns_servers = self._dig(self.domain,"NS")
         vulnerable_ns = []
         for ns in ns_servers:
             ns = ns.rstrip('.')
             log_info(f"[DNS] Attempting AXFR on {ns}…")
             try:
-                result = subprocess.run(
-                    ["dig", "AXFR", self.domain, f"@{ns}"],
-                    capture_output=True, text=True, timeout=10)
+                result = subprocess.run(["dig","AXFR",self.domain,f"@{ns}"],
+                                        capture_output=True,text=True,timeout=10)
                 if "Transfer failed" in result.stdout or "timed out" in result.stdout:
                     log_info(f"  AXFR refused by {ns} ✓")
                 elif result.stdout.strip():
@@ -1166,160 +943,107 @@ class DNSScanner:
                 break
         return vulnerable_ns
 
-    # ── Matrix HTML report ────────────────────────────────────
     def generate_dns_html(self, output_dir: str = "./reports") -> str:
         Path(output_dir).mkdir(exist_ok=True)
         ts       = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = Path(output_dir) / f"striker_dns_{self.domain}_{ts}.html"
-
-        # Build records table
         rec_rows = ""
         for rtype, values in self.dns_records.items():
             for val in values:
-                color_map = {"A": "#00ff41", "AAAA": "#00e5ff",
-                             "MX": "#ffd700", "NS": "#ff9900",
-                             "TXT": "#cc99ff", "CNAME": "#ff6699", "SOA": "#888"}
-                color = color_map.get(rtype, "#aaa")
-                rec_rows += (f'<tr>'
-                             f'<td style="color:{color};font-weight:bold">{rtype}</td>'
-                             f'<td>{val}</td>'
-                             f'</tr>\n')
+                color_map = {"A":"#00ff41","AAAA":"#00e5ff","MX":"#ffd700",
+                             "NS":"#ff9900","TXT":"#cc99ff","CNAME":"#ff6699","SOA":"#888"}
+                color = color_map.get(rtype,"#aaa")
+                rec_rows += (f'<tr><td style="color:{color};font-weight:bold">{rtype}</td>'
+                             f'<td>{val}</td></tr>\n')
         if not rec_rows:
             rec_rows = '<tr><td colspan="2" class="empty">No records found</td></tr>'
-
-        # Build subdomains table
         sub_rows = ""
         for s in self.found_subs:
             ips   = ', '.join(s['ips'])
-            cname = ', '.join(s.get('cname', []))
-            sub_rows += (f'<tr>'
-                         f'<td><span style="color:#00ff41">{s["subdomain"]}</span></td>'
-                         f'<td>{ips}</td>'
-                         f'<td style="color:#666">{cname}</td>'
-                         f'</tr>\n')
+            cname = ', '.join(s.get('cname',[]))
+            sub_rows += (f'<tr><td><span style="color:#00ff41">{s["subdomain"]}</span></td>'
+                         f'<td>{ips}</td><td style="color:#666">{cname}</td></tr>\n')
         if not sub_rows:
             sub_rows = '<tr><td colspan="3" class="empty">No subdomains found</td></tr>'
 
-        html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>STRIKER DNS – {self.domain}</title>
-  <style>
-    :root {{
-      --bg:#0a0a0a;--bg2:#111;--green:#00ff41;--dkgreen:#00b32c;
-      --dim:#1a3a1a;--border:#1e5e1e;--text:#b8ffb8;--header:#003d00;
-    }}
-    * {{ box-sizing:border-box; margin:0; padding:0; }}
-    body {{ background:var(--bg); color:var(--text);
-            font-family:'Courier New',monospace; font-size:13px; }}
-    #matrix-canvas {{ position:fixed;top:0;left:0;width:100%;height:100%;
-                      z-index:0;opacity:.06;pointer-events:none; }}
-    .wrapper {{ position:relative;z-index:1;padding:20px;max-width:1200px;margin:auto; }}
-    .header {{ text-align:center;padding:30px 0 10px;border-bottom:2px solid var(--border);margin-bottom:20px; }}
-    .header pre {{ color:var(--green);font-size:10px;text-shadow:0 0 8px var(--green); }}
-    .header .sub {{ color:var(--dkgreen);margin-top:8px; }}
-    .stats {{ display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px; }}
-    .stat-box {{ flex:1 1 120px;background:var(--dim);border:1px solid var(--border);
-                 border-radius:4px;padding:12px;text-align:center; }}
-    .stat-box .num {{ font-size:26px;color:var(--green);font-weight:bold; }}
-    .stat-box .lbl {{ font-size:10px;color:var(--dkgreen);text-transform:uppercase; }}
-    .section {{ background:var(--bg2);border:1px solid var(--border);
-                border-radius:4px;padding:16px;margin-bottom:20px; }}
-    .section h2 {{ color:var(--green);font-size:13px;margin-bottom:12px;
-                   text-transform:uppercase;letter-spacing:.1em; }}
-    table {{ width:100%;border-collapse:collapse; }}
-    th {{ background:var(--header);color:var(--green);padding:8px 12px;
-          text-align:left;border-bottom:1px solid var(--border);
-          font-size:11px;text-transform:uppercase; }}
-    td {{ padding:6px 12px;border-bottom:1px solid #161616;word-break:break-all; }}
-    tr:hover td {{ background:var(--dim); }}
-    .empty {{ color:#333;text-align:center;padding:20px; }}
-    .footer {{ text-align:center;color:#2a4a2a;padding:20px 0;
-               font-size:11px;border-top:1px solid var(--border); }}
-  </style>
-</head>
-<body>
+        html = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>STRIKER DNS – {self.domain}</title>
+<style>
+  :root{{--bg:#0a0a0a;--bg2:#111;--green:#00ff41;--dkgreen:#00b32c;--dim:#1a3a1a;--border:#1e5e1e;--text:#b8ffb8;--header:#003d00;}}
+  *{{box-sizing:border-box;margin:0;padding:0;}}
+  body{{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;font-size:13px;}}
+  #matrix-canvas{{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;opacity:.06;pointer-events:none;}}
+  .wrapper{{position:relative;z-index:1;padding:20px;max-width:1200px;margin:auto;}}
+  .header{{text-align:center;padding:30px 0 10px;border-bottom:2px solid var(--border);margin-bottom:20px;}}
+  .header pre{{color:var(--green);font-size:10px;text-shadow:0 0 8px var(--green);}}
+  .header .sub{{color:var(--dkgreen);margin-top:8px;}}
+  .stats{{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;}}
+  .stat-box{{flex:1 1 120px;background:var(--dim);border:1px solid var(--border);border-radius:4px;padding:12px;text-align:center;}}
+  .stat-box .num{{font-size:26px;color:var(--green);font-weight:bold;}}
+  .stat-box .lbl{{font-size:10px;color:var(--dkgreen);text-transform:uppercase;}}
+  .section{{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:20px;}}
+  .section h2{{color:var(--green);font-size:13px;margin-bottom:12px;text-transform:uppercase;letter-spacing:.1em;}}
+  table{{width:100%;border-collapse:collapse;}}
+  th{{background:var(--header);color:var(--green);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;}}
+  td{{padding:6px 12px;border-bottom:1px solid #161616;word-break:break-all;}}
+  tr:hover td{{background:var(--dim);}}
+  .empty{{color:#333;text-align:center;padding:20px;}}
+  .footer{{text-align:center;color:#2a4a2a;padding:20px 0;font-size:11px;border-top:1px solid var(--border);}}
+</style></head><body>
 <canvas id="matrix-canvas"></canvas>
 <div class="wrapper">
-  <div class="header">
-    <pre>DNS SCAN</pre>
+  <div class="header"><pre>DNS SCAN</pre>
     <div class="sub">DNS Surface Analysis — {self.domain}</div>
     <div style="color:#555;font-size:11px">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</div>
   </div>
-
   <div class="stats">
     <div class="stat-box"><div class="num">{len(self.dns_records)}</div><div class="lbl">Record Types</div></div>
     <div class="stat-box"><div class="num">{sum(len(v) for v in self.dns_records.values())}</div><div class="lbl">Total Records</div></div>
     <div class="stat-box"><div class="num">{len(self.found_subs)}</div><div class="lbl">Subdomains</div></div>
-    <div class="stat-box"><div class="num">{len(self.dns_records.get('MX', []))}</div><div class="lbl">Mail Servers</div></div>
-    <div class="stat-box"><div class="num">{len(self.dns_records.get('NS', []))}</div><div class="lbl">Nameservers</div></div>
+    <div class="stat-box"><div class="num">{len(self.dns_records.get('MX',[]))}</div><div class="lbl">Mail Servers</div></div>
+    <div class="stat-box"><div class="num">{len(self.dns_records.get('NS',[]))}</div><div class="lbl">Nameservers</div></div>
   </div>
-
-  <div class="section">
-    <h2>▸ DNS Records — {self.domain}</h2>
-    <table>
-      <thead><tr><th>Type</th><th>Value</th></tr></thead>
-      <tbody>{rec_rows}</tbody>
-    </table>
+  <div class="section"><h2>▸ DNS Records — {self.domain}</h2>
+    <table><thead><tr><th>Type</th><th>Value</th></tr></thead><tbody>{rec_rows}</tbody></table>
   </div>
-
-  <div class="section">
-    <h2>▸ Discovered Subdomains ({len(self.found_subs)})</h2>
-    <table>
-      <thead><tr><th>Subdomain</th><th>IP Address(es)</th><th>CNAME</th></tr></thead>
-      <tbody>{sub_rows}</tbody>
-    </table>
+  <div class="section"><h2>▸ Discovered Subdomains ({len(self.found_subs)})</h2>
+    <table><thead><tr><th>Subdomain</th><th>IP Address(es)</th><th>CNAME</th></tr></thead><tbody>{sub_rows}</tbody></table>
   </div>
-
   <div class="footer">STRIKER v4.3 | DNS Surface Analysis | {datetime.now().year}</div>
 </div>
 <script>
-(function() {{
-  const canvas=document.getElementById('matrix-canvas');
-  const ctx=canvas.getContext('2d');
-  let W,H,cols,drops;
-  const CHARS='01アイウエオABCDEF0123456789';
-  function init(){{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;
-    cols=Math.floor(W/14);drops=Array(cols).fill(1);}}
-  function draw(){{ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#00ff41';ctx.font='14px Courier New';
-    drops.forEach((y,i)=>{{const ch=CHARS[Math.floor(Math.random()*CHARS.length)];
-      ctx.fillText(ch,i*14,y*14);
+(function(){{const canvas=document.getElementById('matrix-canvas');const ctx=canvas.getContext('2d');
+  let W,H,cols,drops;const CHARS='01アイウエオABCDEF0123456789';
+  function init(){{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;cols=Math.floor(W/14);drops=Array(cols).fill(1);}}
+  function draw(){{ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#00ff41';ctx.font='14px Courier New';
+    drops.forEach((y,i)=>{{const ch=CHARS[Math.floor(Math.random()*CHARS.length)];ctx.fillText(ch,i*14,y*14);
       if(y*14>H&&Math.random()>.975)drops[i]=0;drops[i]++;}});}}
   init();window.addEventListener('resize',init);setInterval(draw,35);
 }})();
-</script>
-</body>
-</html>"""
+</script></body></html>"""
 
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(html)
         log_success(f"DNS HTML report saved → {filename}")
         return str(filename)
 
-    # ── Full scan ─────────────────────────────────────────────
     def scan(self) -> Dict:
         log_title("DNS Surface Analysis")
         log_info(f"Target domain: {self.domain}")
-
         self.get_dns_records()
         self.enumerate_subdomains()
         self.try_zone_transfer()
-
         report_file = self.generate_dns_html()
-
         log_title("DNS Scan Summary")
-        log_kv("Domain",          self.domain)
-        log_kv("Record types",    str(len(self.dns_records)))
-        log_kv("Subdomains found",str(len(self.found_subs)), bool(self.found_subs))
+        log_kv("Domain",           self.domain)
+        log_kv("Record types",     str(len(self.dns_records)))
+        log_kv("Subdomains found", str(len(self.found_subs)), bool(self.found_subs))
         log_success(f"Report: {report_file}")
-
         return {
-            "domain":       self.domain,
-            "dns_records":  self.dns_records,
-            "subdomains":   self.found_subs,
-            "report":       report_file,
+            "domain":      self.domain,
+            "dns_records": self.dns_records,
+            "subdomains":  self.found_subs,
+            "report":      report_file,
         }
 
 
@@ -1424,16 +1148,15 @@ class WordPressDetector:
             "plugins": [], "endpoints": {}, "rest_api": {},
             "theme_advisories": [],
         }
-
         if not self.is_wordpress():
             log_warning("WordPress not detected")
             return findings
 
-        findings["is_wordpress"]       = True
-        findings["version"]            = self.detect_version()
-        findings["theme"]              = self.detect_theme()
-        findings["plugins"]            = self.detect_plugins()
-        findings["theme_advisories"]   = self.check_theme_advisories(findings["theme"])
+        findings["is_wordpress"]     = True
+        findings["version"]          = self.detect_version()
+        findings["theme"]            = self.detect_theme()
+        findings["plugins"]          = self.detect_plugins()
+        findings["theme_advisories"] = self.check_theme_advisories(findings["theme"])
         findings["endpoints"] = {
             "wp_admin": self._check_endpoint("/wp-admin/"),
             "wp_login": self._check_endpoint("/wp-login.php"),
@@ -1444,7 +1167,7 @@ class WordPressDetector:
 
         log_title("WordPress Detection")
         log_kv("Detected", "YES", True)
-        log_kv("Version", findings["version"] or "Not detected", bool(findings["version"]))
+        log_kv("Version",  findings["version"] or "Not detected", bool(findings["version"]))
         if findings["theme"]:
             log_info(f"Active theme: {findings['theme']}")
         if findings["plugins"]:
@@ -1454,7 +1177,6 @@ class WordPressDetector:
         for ep, enabled in findings["endpoints"].items():
             log_kv(ep, "OPEN" if enabled else "CLOSED", enabled)
 
-        # ← BUG FIX: advisory section was unreachable in original (after return)
         if findings["theme_advisories"]:
             log_warning(f"Public advisories for theme '{findings['theme']}':")
             for adv in findings["theme_advisories"]:
@@ -1510,27 +1232,36 @@ class WAFDetector:
 
 
 # ──────────────────────────────────────────────────────────────
-# REPORT GENERATOR
+# REPORT GENERATOR  ← AGGIORNATO
 # ──────────────────────────────────────────────────────────────
 class ReportGenerator:
-    def __init__(self, vulnerabilities: List[Vulnerability], output_dir: str = "./reports"):
+    def __init__(self, vulnerabilities: List[Vulnerability],
+                 all_findings: Dict = None,
+                 output_dir: str = "./reports"):
         self.vulnerabilities = vulnerabilities
+        self.all_findings    = all_findings or {}
         self.output_dir      = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         self.timestamp       = datetime.now().strftime("%Y%m%d_%H%M%S")
 
+    # ── JSON ─────────────────────────────────────────────────
     def generate_json(self) -> str:
         data = {
-            'timestamp':            datetime.now().isoformat(),
+            'timestamp':             datetime.now().isoformat(),
             'total_vulnerabilities': len(self.vulnerabilities),
             'vulnerabilities':       [v.to_dict() for v in self.vulnerabilities],
             'summary':               self._get_summary(),
+            'wordpress':             self.all_findings.get('wordpress', {}),
+            'waf':                   self.all_findings.get('waf', {}),
+            'crawler_stats':         self.all_findings.get('crawler_stats', {}),
+            'dns':                   self.all_findings.get('dns', {}),
         }
         filename = self.output_dir / f"striker_report_{self.timestamp}.json"
         with open(filename, 'w') as f:
             json.dump(data, f, indent=2)
         return str(filename)
 
+    # ── CSV ──────────────────────────────────────────────────
     def generate_csv(self) -> str:
         filename = self.output_dir / f"striker_report_{self.timestamp}.csv"
         with open(filename, 'w', newline='') as f:
@@ -1541,11 +1272,14 @@ class ReportGenerator:
                     writer.writerow(vuln.to_dict())
         return str(filename)
 
+    # ── HTML ─────────────────────────────────────────────────
     def generate_html(self) -> str:
-        rows = ""
+
+        # ── Vulnerability rows ────────────────────────────────
+        vuln_rows = ""
         for vuln in self.vulnerabilities:
             sc = vuln.severity.lower()
-            rows += f"""
+            vuln_rows += f"""
         <tr>
           <td><code>{vuln.target}</code></td>
           <td>{vuln.vuln_type}</td>
@@ -1556,15 +1290,125 @@ class ReportGenerator:
           <td>{vuln.proof}</td>
         </tr>"""
 
+        # ── Crawler Stats section ─────────────────────────────
+        cs = self.all_findings.get('crawler_stats', {})
+        crawler_html = ""
+        if cs:
+            crawler_html = f"""
+<h2>🕷️ Crawler Statistics</h2>
+<table>
+  <tr><th>Property</th><th>Value</th></tr>
+  <tr><td>Pages visited</td><td>{cs.get('pages_visited', 0)}</td></tr>
+  <tr><td>URLs with parameters</td><td>{cs.get('urls_with_params', 0)}</td></tr>
+  <tr><td>Forms found</td><td>{cs.get('forms_found', 0)}</td></tr>
+  <tr><td>Max depth used</td><td>{cs.get('max_depth', '—')}</td></tr>
+</table>"""
+
+        # ── WAF section ───────────────────────────────────────
+        waf = self.all_findings.get('waf', {})
+        waf_html = ""
+        if waf:
+            waf_detected = waf.get('waf_detected', False)
+            waf_name     = waf.get('waf_name') or 'None detected'
+            confidence   = waf.get('confidence', 0)
+            color = "#d32f2f" if waf_detected else "#388e3c"
+            waf_html = f"""
+<h2>🛡️ WAF Detection</h2>
+<table>
+  <tr><th>Property</th><th>Value</th></tr>
+  <tr><td>WAF Present</td>
+      <td><span style="color:{color};font-weight:bold">{'YES' if waf_detected else 'NO'}</span></td></tr>
+  <tr><td>WAF Name</td><td>{waf_name}</td></tr>
+  <tr><td>Confidence</td><td>{f'{confidence:.0%}' if waf_detected else '—'}</td></tr>
+</table>"""
+
+        # ── WordPress section ─────────────────────────────────
+        wp = self.all_findings.get('wordpress', {})
+        wp_html = ""
+        if wp:
+            ep = wp.get('endpoints', {})
+            def ep_badge(val: bool) -> str:
+                color = "#388e3c" if val else "#d32f2f"
+                label = "OPEN" if val else "CLOSED"
+                return f'<span style="color:{color};font-weight:bold">{label}</span>'
+
+            plugins_list = ', '.join(wp.get('plugins', [])) or '—'
+
+            # advisories table
+            advisories_html = ""
+            for adv in wp.get('theme_advisories', []):
+                advisories_html += (
+                    f'<tr><td>{adv["id"]}</td><td>{adv["type"]}</td>'
+                    f'<td class="{adv["severity"].lower()}">{adv["severity"]}</td>'
+                    f'<td>{adv["description"]}</td></tr>')
+
+            # REST API info
+            rest       = wp.get('rest_api', {})
+            namespaces = ', '.join(rest.get('namespaces', [])) or '—'
+
+            wp_html = f"""
+<h2>🔌 WordPress Analysis</h2>
+<table>
+  <tr><th>Property</th><th>Value</th></tr>
+  <tr><td>Detected</td>
+      <td>{'<span style="color:#d32f2f;font-weight:bold">YES</span>' if wp.get('is_wordpress') else 'No'}</td></tr>
+  <tr><td>Version</td><td>{wp.get('version') or '—'}</td></tr>
+  <tr><td>Active Theme</td><td>{wp.get('theme') or '—'}</td></tr>
+  <tr><td>Plugins detected</td><td>{plugins_list}</td></tr>
+  <tr><td>wp-admin</td><td>{ep_badge(ep.get('wp_admin', False))}</td></tr>
+  <tr><td>wp-login.php</td><td>{ep_badge(ep.get('wp_login', False))}</td></tr>
+  <tr><td>xmlrpc.php</td><td>{ep_badge(ep.get('xmlrpc', False))}</td></tr>
+  <tr><td>REST API (/wp-json/)</td><td>{ep_badge(ep.get('rest_api', False))}</td></tr>
+  <tr><td>REST API Namespaces</td><td><code>{namespaces}</code></td></tr>
+  <tr><td>Site Name</td><td>{rest.get('site_name') or '—'}</td></tr>
+  <tr><td>Site Description</td><td>{rest.get('description') or '—'}</td></tr>
+</table>"""
+
+            if advisories_html:
+                wp_html += f"""
+<h3>⚠️ Theme Advisories — {wp.get('theme')}</h3>
+<table>
+  <tr><th>CVE ID</th><th>Type</th><th>Severity</th><th>Description</th></tr>
+  {advisories_html}
+</table>"""
+
+        # ── DNS section ───────────────────────────────────────
+        dns = self.all_findings.get('dns', {})
+        dns_html = ""
+        if dns:
+            rec_rows = ""
+            for rtype, vals in dns.get('dns_records', {}).items():
+                for val in vals:
+                    rec_rows += f"<tr><td><strong>{rtype}</strong></td><td>{val}</td></tr>"
+            sub_rows = ""
+            for s in dns.get('subdomains', []):
+                sub_rows += (f'<tr><td>{s["subdomain"]}</td>'
+                             f'<td>{", ".join(s["ips"])}</td></tr>')
+            dns_html = f"""
+<h2>🌐 DNS Analysis</h2>
+<h3>Records</h3>
+<table>
+  <tr><th>Type</th><th>Value</th></tr>
+  {rec_rows or '<tr><td colspan="2">No records</td></tr>'}
+</table>
+<h3>Subdomains ({len(dns.get('subdomains', []))} found)</h3>
+<table>
+  <tr><th>Subdomain</th><th>IP(s)</th></tr>
+  {sub_rows or '<tr><td colspan="2">None found</td></tr>'}
+</table>"""
+
+        # ── Assemble HTML ─────────────────────────────────────
         html = f"""<!DOCTYPE html><html><head><title>Striker Report</title>
 <meta charset="UTF-8">
 <style>
   body{{font-family:Arial,sans-serif;margin:20px;background:#f5f5f5}}
   h1{{color:#333;border-bottom:3px solid #d32f2f;padding-bottom:10px}}
+  h2{{color:#333;margin-top:30px;border-left:4px solid #d32f2f;padding-left:10px}}
+  h3{{color:#555;margin-top:16px;margin-bottom:8px}}
   table{{width:100%;border-collapse:collapse;background:#fff;margin-bottom:20px}}
-  th,td{{padding:12px;text-align:left;border-bottom:1px solid #ddd}}
+  th,td{{padding:10px 12px;text-align:left;border-bottom:1px solid #ddd}}
   th{{background:#d32f2f;color:#fff}}
-  tr:hover{{background:#f5f5f5}}
+  tr:hover{{background:#f9f9f9}}
   .summary{{background:#e3f2fd;padding:15px;border-radius:5px;margin-bottom:20px}}
   .critical{{color:#d32f2f;font-weight:bold}}
   .high{{color:#f57c00;font-weight:bold}}
@@ -1573,20 +1417,30 @@ class ReportGenerator:
   code{{background:#f4f4f4;padding:2px 6px;border-radius:3px;font-family:monospace}}
 </style></head><body>
 <h1>🔐 STRIKER v4.3 — Security Assessment Report</h1>
-<p>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+<p style="color:#666;margin-bottom:16px">Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
 <div class="summary">{self._get_summary_html()}</div>
-<h2>Vulnerabilities</h2>
+
+{crawler_html}
+{waf_html}
+{wp_html}
+{dns_html}
+
+<h2>🐛 Vulnerabilities Found</h2>
 <table>
   <tr><th>Target</th><th>Type</th><th>Parameter</th><th>Severity</th>
       <th>Confidence</th><th>Payload</th><th>Proof</th></tr>
-  {rows if rows else '<tr><td colspan="7" style="text-align:center">No vulnerabilities detected.</td></tr>'}
-</table></body></html>"""
+  {vuln_rows if vuln_rows else
+   '<tr><td colspan="7" style="text-align:center;color:#888;padding:20px">'
+   'No vulnerabilities detected.</td></tr>'}
+</table>
+</body></html>"""
 
         filename = self.output_dir / f"striker_report_{self.timestamp}.html"
         with open(filename, 'w') as f:
             f.write(html)
         return str(filename)
 
+    # ── helpers ───────────────────────────────────────────────
     def _get_summary(self) -> Dict:
         s = {'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'by_type': {}}
         for v in self.vulnerabilities:
@@ -1595,13 +1449,21 @@ class ReportGenerator:
         return s
 
     def _get_summary_html(self) -> str:
-        s = self._get_summary()
-        return f"""<h3>Summary</h3><p>
-<strong>Total:</strong> {len(self.vulnerabilities)}<br>
-<strong>Critical:</strong> <span class="critical">{s['critical']}</span> |
-<strong>High:</strong> <span class="high">{s['high']}</span> |
-<strong>Medium:</strong> <span class="medium">{s['medium']}</span> |
-<strong>Low:</strong> <span class="low">{s['low']}</span></p>"""
+        s   = self._get_summary()
+        wp  = self.all_findings.get('wordpress', {})
+        waf = self.all_findings.get('waf', {})
+        cs  = self.all_findings.get('crawler_stats', {})
+        return f"""<h3>Executive Summary</h3><p>
+<strong>Total vulnerabilities:</strong> {len(self.vulnerabilities)}<br>
+<strong>Critical:</strong> <span class="critical">{s['critical']}</span> &nbsp;|&nbsp;
+<strong>High:</strong> <span class="high">{s['high']}</span> &nbsp;|&nbsp;
+<strong>Medium:</strong> <span class="medium">{s['medium']}</span> &nbsp;|&nbsp;
+<strong>Low:</strong> <span class="low">{s['low']}</span><br>
+<strong>WordPress:</strong> {'YES — v' + (wp.get('version') or '?') if wp.get('is_wordpress') else 'Not detected'} &nbsp;|&nbsp;
+<strong>WAF:</strong> {waf.get('waf_name') or 'Not detected'} &nbsp;|&nbsp;
+<strong>Pages crawled:</strong> {cs.get('pages_visited', '—')} &nbsp;|&nbsp;
+<strong>URLs with params:</strong> {cs.get('urls_with_params', '—')}
+</p>"""
 
     def generate_all(self) -> List[str]:
         files = [self.generate_json(), self.generate_csv(), self.generate_html()]
@@ -1612,17 +1474,17 @@ class ReportGenerator:
 
 
 # ──────────────────────────────────────────────────────────────
-# MAIN SCANNER
+# MAIN SCANNER  ← AGGIORNATO
 # ──────────────────────────────────────────────────────────────
 class StrikerScanner:
     def __init__(self, target_url: str):
         if not is_valid_url(target_url):
             raise ValueError("Invalid URL")
         self.target_url      = target_url
-        self.vulnerabilities: List[Vulnerability]     = []
-        self.crawled_data:    Dict[str, CrawledURL]   = {}
-        self.all_findings:    Dict                    = {}
-        self._vuln_signatures: Set[str]               = set()
+        self.vulnerabilities: List[Vulnerability]   = []
+        self.crawled_data:    Dict[str, CrawledURL] = {}
+        self.all_findings:    Dict                  = {}
+        self._vuln_signatures: Set[str]             = set()
 
     def _add_vulnerabilities(self, vulns: List[Vulnerability]):
         for v in vulns:
@@ -1631,8 +1493,7 @@ class StrikerScanner:
                 self._vuln_signatures.add(sig)
                 self.vulnerabilities.append(v)
 
-    def _scan_with_threads(self, urls: List[str],
-                           tester_method, max_workers: int = 5):
+    def _scan_with_threads(self, urls: List[str], tester_method, max_workers: int = 5):
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = [executor.submit(tester_method, url) for url in urls[:20]]
             for future in as_completed(futures):
@@ -1644,40 +1505,34 @@ class StrikerScanner:
     def scan_sql_injection(self, urls: List[str]):
         log_info(f"Starting SQL Injection scan ({len(urls)} URLs)")
         tester = SQLiTester()
-
         def process(url):
             params = parse_qs(urlparse(url).query)
             vulns  = []
             for name, vals in params.items():
                 vulns.extend(tester.test_parameter(url, name, vals[0] if vals else ""))
             return vulns
-
         self._scan_with_threads(urls, process)
 
     def scan_xss(self, urls: List[str]):
         log_info(f"Starting XSS scan ({len(urls)} URLs)")
         tester = XSSTester()
-
         def process(url):
             params = parse_qs(urlparse(url).query)
             vulns  = []
             for name in params.keys():
                 vulns.extend(tester.test_parameter(url, name))
             return vulns
-
         self._scan_with_threads(urls, process)
 
     def scan_lfi(self, urls: List[str]):
         log_info(f"Starting LFI scan ({len(urls)} URLs)")
         tester = LFITester()
-
         def process(url):
             params = parse_qs(urlparse(url).query)
             vulns  = []
             for name in params.keys():
                 vulns.extend(tester.test_parameter(url, name))
             return vulns
-
         self._scan_with_threads(urls, process)
 
     def advanced_scan(self, max_depth: int = 3):
@@ -1685,10 +1540,22 @@ class StrikerScanner:
         log_info("STRIKER v4.3 — ADVANCED VULNERABILITY SCAN")
         log_info("=" * 70)
 
+        # ── Crawl ─────────────────────────────────────────────
         crawler = AdvancedCrawler(self.target_url, max_depth=max_depth)
         self.crawled_data = crawler.crawl()
 
         urls_with_params = [u for u, d in self.crawled_data.items() if d.parameters]
+        forms_found      = sum(1 for d in self.crawled_data.values() if d.forms)
+
+        # ← Salva stats crawler in all_findings
+        self.all_findings['crawler_stats'] = {
+            'pages_visited':    len(self.crawled_data),
+            'urls_with_params': len(urls_with_params),
+            'forms_found':      forms_found,
+            'max_depth':        max_depth,
+        }
+
+        # ── Vulnerability scans ───────────────────────────────
         if urls_with_params:
             self.scan_sql_injection(urls_with_params)
             self.scan_xss(urls_with_params)
@@ -1696,10 +1563,13 @@ class StrikerScanner:
         else:
             log_warning("No URLs with parameters found")
 
+        # ── WP + WAF ──────────────────────────────────────────
         self.all_findings['wordpress'] = WordPressDetector(self.target_url).scan()
         self.all_findings['waf']       = WAFDetector(self.target_url).scan()
 
-        reporter = ReportGenerator(self.vulnerabilities)
+        # ← Passa all_findings al reporter
+        reporter     = ReportGenerator(self.vulnerabilities,
+                                       all_findings=self.all_findings)
         report_files = reporter.generate_all()
 
         log_info("=" * 70)
@@ -1740,7 +1610,6 @@ def _get_target_or_domain(prompt: str = "Enter target URL or domain: ") -> Optio
     if not val:
         log_error("Empty input")
         return None
-    # Accept bare domains too (for DNS)
     if not val.startswith("http"):
         val = "https://" + val
     return val
@@ -1786,6 +1655,7 @@ def main_menu():
                 continue
             try:
                 scanner = StrikerScanner(target)
+                waf_data = WAFDetector(target).scan()
                 if has_parameters(target):
                     log_info("Parameter detected, running SQL Injection…")
                     scanner.scan_sql_injection([target])
@@ -1794,6 +1664,15 @@ def main_menu():
                     crawled = AdvancedCrawler(target, max_depth=4).crawl()
                     urls = [u for u, d in crawled.items() if d.parameters]
                     scanner.scan_sql_injection(urls)
+                    scanner.all_findings['crawler_stats'] = {
+                        'pages_visited': len(crawled),
+                        'urls_with_params': len(urls),
+                        'forms_found': sum(1 for d in crawled.values() if d.forms),
+                        'max_depth': 4,
+                    }
+                scanner.all_findings['waf'] = waf_data
+                ReportGenerator(scanner.vulnerabilities,
+                                 all_findings=scanner.all_findings).generate_all()
             except Exception as e:
                 log_error(f"SQLi scan error: {e}")
 
@@ -1803,7 +1682,8 @@ def main_menu():
             if not target:
                 continue
             try:
-                scanner = StrikerScanner(target)
+                scanner  = StrikerScanner(target)
+                waf_data = WAFDetector(target).scan()
                 if has_parameters(target):
                     log_info("Direct parameter detected – running XSS…")
                     scanner.scan_xss([target])
@@ -1812,6 +1692,15 @@ def main_menu():
                     crawled = AdvancedCrawler(target, max_depth=2).crawl()
                     urls = [u for u, d in crawled.items() if d.parameters]
                     scanner.scan_xss(urls)
+                    scanner.all_findings['crawler_stats'] = {
+                        'pages_visited': len(crawled),
+                        'urls_with_params': len(urls),
+                        'forms_found': sum(1 for d in crawled.values() if d.forms),
+                        'max_depth': 2,
+                    }
+                scanner.all_findings['waf'] = waf_data
+                ReportGenerator(scanner.vulnerabilities,
+                                 all_findings=scanner.all_findings).generate_all()
             except Exception as e:
                 log_error(f"XSS scan error: {e}")
 
@@ -1821,7 +1710,8 @@ def main_menu():
             if not target:
                 continue
             try:
-                scanner = StrikerScanner(target)
+                scanner  = StrikerScanner(target)
+                waf_data = WAFDetector(target).scan()
                 if has_parameters(target):
                     log_info("Direct parameter detected – running LFI…")
                     scanner.scan_lfi([target])
@@ -1830,6 +1720,15 @@ def main_menu():
                     crawled = AdvancedCrawler(target, max_depth=2).crawl()
                     urls = [u for u, d in crawled.items() if d.parameters]
                     scanner.scan_lfi(urls)
+                    scanner.all_findings['crawler_stats'] = {
+                        'pages_visited': len(crawled),
+                        'urls_with_params': len(urls),
+                        'forms_found': sum(1 for d in crawled.values() if d.forms),
+                        'max_depth': 2,
+                    }
+                scanner.all_findings['waf'] = waf_data
+                ReportGenerator(scanner.vulnerabilities,
+                                 all_findings=scanner.all_findings).generate_all()
             except Exception as e:
                 log_error(f"LFI scan error: {e}")
 
@@ -1839,7 +1738,10 @@ def main_menu():
             if not target:
                 continue
             try:
-                WordPressDetector(target).scan()
+                wp_data  = WordPressDetector(target).scan()
+                waf_data = WAFDetector(target).scan()
+                findings = {'wordpress': wp_data, 'waf': waf_data}
+                ReportGenerator([], all_findings=findings).generate_all()
             except Exception as e:
                 log_error(f"WordPress detection error: {e}")
 
@@ -1849,7 +1751,9 @@ def main_menu():
             if not target:
                 continue
             try:
-                WAFDetector(target).scan()
+                waf_data = WAFDetector(target).scan()
+                findings = {'waf': waf_data}
+                ReportGenerator([], all_findings=findings).generate_all()
             except Exception as e:
                 log_error(f"WAF detection error: {e}")
 
@@ -1870,9 +1774,12 @@ def main_menu():
                 except Exception as e:
                     log_warning(f"Could not load wordlist: {e}. Using default.")
             try:
-                DNSScanner(raw).scan()
+                scanner = DNSScanner(raw)
+                dns_data = scanner.scan()
                 if wordlist:
-                    DNSScanner(raw).enumerate_subdomains(wordlist)
+                    scanner.enumerate_subdomains(wordlist)
+                findings = {'dns': dns_data}
+                ReportGenerator([], all_findings=findings).generate_all()
             except Exception as e:
                 log_error(f"DNS scan error: {e}")
 
@@ -1897,13 +1804,13 @@ def main_menu():
                 report  = crawler.generate_matrix_html()
 
                 log_title("Link Extraction Summary")
-                log_kv("Total links",    str(len(links)))
-                log_kv("Internal",       str(len([l for l in links if l.link_type == "internal"])))
-                log_kv("External",       str(len([l for l in links if l.link_type == "external"])))
-                log_kv("Assets",         str(len([l for l in links if l.link_type == "asset"])))
-                log_kv("Forms",          str(len([l for l in links if l.link_type == "form"])))
-                log_kv("Emails found",   str(len(crawler.emails)))
-                log_kv("With params",    str(len([l for l in links if l.has_params])))
+                log_kv("Total links",  str(len(links)))
+                log_kv("Internal",     str(len([l for l in links if l.link_type == "internal"])))
+                log_kv("External",     str(len([l for l in links if l.link_type == "external"])))
+                log_kv("Assets",       str(len([l for l in links if l.link_type == "asset"])))
+                log_kv("Forms",        str(len([l for l in links if l.link_type == "form"])))
+                log_kv("Emails found", str(len(crawler.emails)))
+                log_kv("With params",  str(len([l for l in links if l.has_params])))
                 log_success(f"Matrix report → {report}")
             except Exception as e:
                 log_error(f"Link extraction error: {e}")
